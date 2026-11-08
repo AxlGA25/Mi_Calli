@@ -27,9 +27,9 @@
   *Listo cuando:* la tabla de diferencias está revisada por mí y los cambios aprobados aplicados, con las pruebas pasando.
 
 ## Fase 2: Etapa 1 - Diario, Climas Emocionales y Seguridad SOS
-- [ ] **2.1.** `DiaryEntry`, el enum `PrehispanicEmotion` (con la tabla de `CONTEXT.md` sección 5D) y `DiaryRepository` (guardar, buscar por rango de fechas y contar emociones de los últimos 7 días).
+- [x] **2.1.** `DiaryEntry`, el enum `PrehispanicEmotion` (con la tabla de `CONTEXT.md` sección 5D) y `DiaryRepository` (guardar, buscar por rango de fechas y contar emociones de los últimos 7 días).
   *Listo cuando:* pruebas cubren guardar, recuperar por fechas y contar emociones.
-- [ ] **2.2.** `SafetyGuardService` (con `assets/data/crisis_patterns.json`), `SupportContactService` y `SupportNetworkModal` con `url_launcher`. El modal también se abre desde `BiometricLockScreen` sin autenticar.
+- [x] **2.2.** `SafetyGuardService` (con `assets/data/crisis_patterns.json`), `SupportContactService` y `SupportNetworkModal` con `url_launcher`. El modal también se abre desde `BiometricLockScreen` sin autenticar.
   *Listo cuando:* pruebas cubren frases de riesgo con y sin acentos y los falsos positivos de `INSTRUCTIONS.md`; el modal abre los dos destinos y funciona desde la pantalla de bloqueo.
 - [ ] **2.3.** `EmotionWeatherSelector`: los 5 climas con la tabla de `CONTEXT.md` 5D, gradientes de fondo con `AppColors` y `SafeAnimationWrapper`.
   *Listo cuando:* al elegir un clima cambia el gradiente y cada clima muestra su emoción correcta.
