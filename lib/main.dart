@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'core/constants/app_colors.dart';
 import 'core/performance/animation_cache_service.dart';
 import 'core/security/biometric_vault_service.dart';
+import 'core/security/safety_guard_provider.dart';
 import 'core/settings/app_settings_service.dart';
 import 'features/0_onboarding/onboarding_flow.dart';
 import 'features/0_onboarding/biometric_lock_screen.dart';
@@ -34,6 +35,12 @@ void main() async {
   // Inicializar caché de animaciones (assets conocidos; lista vacía por ahora,
   // se poblará cuando existan assets reales en Fase 4)
   await AnimationCacheService().initialize([]);
+
+  // Inicializar SafetyGuardService (detector de crisis) antes de runApp.
+  // Si falla, el provider usa fallbackPatterns y NO rompe el arranque.
+  final container = ProviderContainer();
+  await container.read(safetyGuardServiceProvider.future);
+  container.dispose();
 
   runApp(const ProviderScope(child: MiCalliApp()));
 }

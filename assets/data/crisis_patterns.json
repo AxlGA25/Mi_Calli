@@ -1,0 +1,209 @@
+{
+  "version": 1,
+  "patterns": [
+    {
+      "id": "ideacion_01",
+      "category": "ideacion",
+      "regex": "\\bquiero (morir|morirme|desaparecer)\\b",
+      "unless": [
+        "de (la )?(risa|hambre|sueno|calor|frio|pena|verguenza|ganas|nervios|envidia|flojera|aburrimiento|miedo|cansancio)",
+        "(el|este|ese) (calor|frio|ruido|trafico)"
+      ]
+    },
+    {
+      "id": "ideacion_02",
+      "category": "ideacion",
+      "regex": "\\bme quiero (morir|matar)\\b",
+      "unless": [
+        "de (la )?(risa|hambre|sueno|calor|frio|pena|verguenza|ganas|nervios|envidia|flojera|aburrimiento|miedo|cansancio)",
+        "(el|este|ese) (calor|frio|ruido|trafico)",
+        "(trabajando|estudiando|limpiando|corriendo|entrenando|cocinando)"
+      ]
+    },
+    {
+      "id": "ideacion_03",
+      "category": "ideacion",
+      "regex": "\\b(ya )?no quiero (seguir )?(vivir|viviendo)\\b",
+      "unless": [
+        "(en|con) (mi|mis|esta|este|ese|esa|la|el|los|las) (casa|ciudad|pais|lugar|colonia|barrio|papas|padres|familia|mama|papa|companeros)"
+      ]
+    },
+    {
+      "id": "ideacion_04",
+      "category": "ideacion",
+      "regex": "\\bquitarme la vida\\b"
+    },
+    {
+      "id": "ideacion_05",
+      "category": "ideacion",
+      "regex": "\\bacabar con mi vida\\b"
+    },
+    {
+      "id": "ideacion_06",
+      "category": "ideacion",
+      "regex": "\\bterminar con mi vida\\b"
+    },
+    {
+      "id": "ideacion_07",
+      "category": "ideacion",
+      "regex": "\\bsuicid\\w*\\b"
+    },
+    {
+      "id": "ideacion_08",
+      "category": "ideacion",
+      "regex": "\\bmejor estar muert[oa]\\b"
+    },
+    {
+      "id": "ideacion_09",
+      "category": "ideacion",
+      "regex": "\\bojala no despertar\\b"
+    },
+    {
+      "id": "ideacion_10",
+      "category": "ideacion",
+      "regex": "\\bmorirme\\b",
+      "unless": [
+        "de (la )?(risa|hambre|sueno|calor|frio|pena|verguenza|ganas|nervios|envidia|flojera|aburrimiento|miedo|cansancio)",
+        "(el|este|ese) (calor|frio|ruido|trafico)"
+      ]
+    },
+    {
+      "id": "ideacion_11",
+      "category": "ideacion",
+      "regex": "\\bmatarme\\b",
+      "unless": [
+        "de (la )?(risa|hambre|sueno|calor|frio|pena|verguenza|ganas|nervios|envidia|flojera|aburrimiento|miedo|cansancio)",
+        "(el|este|ese) (calor|frio|ruido|trafico)"
+      ]
+    },
+    {
+      "id": "ideacion_12",
+      "category": "ideacion",
+      "regex": "\\bme voy a (matar|suicidar)\\b",
+      "unless": [
+        "de (la )?(risa|hambre|sueno|calor|frio|pena|verguenza|ganas|nervios|envidia|flojera|aburrimiento|miedo|cansancio)",
+        "(el|este|ese) (calor|frio|ruido|trafico)",
+        "(trabajando|estudiando|limpiando|corriendo|entrenando|cocinando)"
+      ]
+    },
+    {
+      "id": "ideacion_13",
+      "category": "ideacion",
+      "regex": "\\b(quisiera|queria|ojala pudiera|deseo|pienso en|pensando en|pense en) (morir|desaparecer)\\b",
+      "unless": [
+        "de (la )?(risa|hambre|sueno|calor|frio|pena|verguenza|ganas|nervios|envidia|flojera|aburrimiento|miedo|cansancio)",
+        "(el|este|ese) (calor|frio|ruido|trafico)"
+      ]
+    },
+    {
+      "id": "ideacion_14",
+      "category": "ideacion",
+      "regex": "\\b(ojala|quisiera|desearia|quiero) no (despertar|despertarme|existir|haber nacido)\\b"
+    },
+    {
+      "id": "ideacion_15",
+      "category": "ideacion",
+      "regex": "\\bno quiero estar (vivo|viva|en este mundo)\\b"
+    },
+    {
+      "id": "ideacion_16",
+      "category": "ideacion",
+      "regex": "\\b(harto|harta|cansado|cansada) de vivir\\b"
+    },
+    {
+      "id": "ideacion_17",
+      "category": "ideacion",
+      "regex": "\\bno (vale|valia) la pena (vivir|seguir viviendo)\\b"
+    },
+    {
+      "id": "ideacion_18",
+      "category": "ideacion",
+      "regex": "\\bnadie me extranaria\\b"
+    },
+    {
+      "id": "ideacion_19",
+      "category": "ideacion",
+      "regex": "\\bnadie notaria si (desaparezco|no estoy)\\b"
+    },
+    {
+      "id": "autolesion_01",
+      "category": "autolesion",
+      "regex": "\\bhacerme dano\\b"
+    },
+    {
+      "id": "autolesion_02",
+      "category": "autolesion",
+      "regex": "\\blastimarme\\b"
+    },
+    {
+      "id": "autolesion_03",
+      "category": "autolesion",
+      "regex": "\\bautolesion\\w*\\b"
+    },
+    {
+      "id": "autolesion_04",
+      "category": "autolesion",
+      "regex": "\\bcortarme las (venas|munecas)\\b"
+    },
+    {
+      "id": "autolesion_05",
+      "category": "autolesion",
+      "regex": "\\bme estoy cortando\\b"
+    },
+    {
+      "id": "autolesion_06",
+      "category": "autolesion",
+      "regex": "\\bme (quiero|voy a|quisiera) hacer dano\\b"
+    },
+    {
+      "id": "autolesion_07",
+      "category": "autolesion",
+      "regex": "\\bdanarme\\b"
+    },
+    {
+      "id": "autolesion_08",
+      "category": "autolesion",
+      "regex": "\\bme (corto|corte|he cortado|estoy cortando) (los brazos|el brazo|las piernas|la pierna|la piel|las munecas)\\b"
+    },
+    {
+      "id": "desesperanza_01",
+      "category": "desesperanza",
+      "regex": "\\bno aguanto mas\\b",
+      "unless": [
+        "de (la )?(risa|hambre|sueno|calor|frio|pena|verguenza|ganas|nervios|envidia|flojera|aburrimiento|miedo|cansancio)",
+        "(el|este|ese) (calor|frio|ruido|trafico)",
+        "a (mi|la|el|los|las|ese|esa|este|esta|tu|su) \\w+"
+      ]
+    },
+    {
+      "id": "desesperanza_02",
+      "category": "desesperanza",
+      "regex": "\\bya no puedo mas con (esto|mi vida)\\b"
+    },
+    {
+      "id": "desesperanza_03",
+      "category": "desesperanza",
+      "regex": "\\b(ya )?no tiene (caso|sentido) (seguir|vivir)\\b"
+    },
+    {
+      "id": "desesperanza_04",
+      "category": "desesperanza",
+      "regex": "\\bnada tiene sentido\\b"
+    },
+    {
+      "id": "desesperanza_05",
+      "category": "desesperanza",
+      "regex": "\\bno le importo a nadie\\b"
+    },
+    {
+      "id": "desesperanza_06",
+      "category": "desesperanza",
+      "regex": "\\bestar(ian|ia) mejor sin mi\\b"
+    },
+    {
+      "id": "desesperanza_07",
+      "category": "desesperanza",
+      "regex": "\\bsoy una carga\\b"
+    }
+  ]
+}
