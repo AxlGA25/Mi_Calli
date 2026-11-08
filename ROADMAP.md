@@ -6,12 +6,12 @@
 - [x] **1.1.** Inicializar el proyecto Flutter y agregar las dependencias con `flutter pub add` (Riverpod, `sqflite_sqlcipher`, `flutter_secure_storage`, `shared_preferences`, `local_auth`, `rive`, `lottie`, `audioplayers`, `google_sign_in`, `http`, `url_launcher`, `uuid`, `intl`, `path`, `flutter_local_notifications`, `cryptography`, `share_plus`, `file_picker`).
   *Listo cuando:* `flutter pub get` y `flutter analyze` pasan sin errores. **✓ Completado**
   *Listo cuando:* `flutter pub get` y `flutter analyze` pasan sin errores.
-- [ ] **1.2.** Crear la estructura *Feature-First* de `lib/` (Etapa 4 + carpetas adicionales de `CONTEXT.md` sección 4) y las carpetas de `assets/` con un archivo `.gitkeep`. En `pubspec.yaml` declara solo carpetas que existan; los `.riv`, Lottie y audios se declaran cuando haya archivos reales.
-  *Listo cuando:* la app compila y muestra una pantalla vacía.
+- [x] **1.2.** Crear la estructura *Feature-First* de `lib/` (Etapa 4 + carpetas adicionales de `CONTEXT.md` sección 4) y las carpetas de `assets/` con un archivo `.gitkeep`. En `pubspec.yaml` declara solo carpetas que existan; los `.riv`, Lottie y audios se declaran cuando haya archivos reales.
+  *Listo cuando:* la app compila y muestra una pantalla vacía. **✓ Completado**
 - [ ] **1.3.** Configurar Riverpod (`ProviderScope` en `main.dart`) y las constantes: paleta, textos SOS (`sos_texts.dart`, con el mensaje unificado) y `legal_texts.dart` con marcadores de posición para el aviso y la política (el texto final lo apruebo yo).
   *Listo cuando:* un widget de prueba lee un color y un texto desde las constantes.
-- [ ] **1.4.** Generar `assets/data/feathers.json` (5 plumas) y `assets/data/seeds_catalog.json` (7 semillas) con los datos de las Etapas 1 y 2.
-  *Listo cuando:* ambos archivos se cargan y se parsean a modelos sin errores.
+- [x] **1.4.** Generar `assets/data/feathers.json` (5 plumas) y `assets/data/seeds_catalog.json` (7 semillas) con los datos de las Etapas 1 y 2.
+  *Listo cuando:* ambos archivos se cargan y se parsean a modelos sin errores. **✓ Completado**
 - [ ] **1.5.** Implementar `LocalDatabaseService` con SQLite cifrado y las 4 tablas de `CONTEXT.md` sección 5A (con `local_id` y `google_uid` nullable). La llave se genera una vez y se guarda en `flutter_secure_storage`.
   *Listo cuando:* hay una prueba que crea la base, inserta y lee una fila de cada tabla, y el archivo de la base no se puede leer como texto plano.
 - [ ] **1.6.** Implementar `AppSettingsService` (`shared_preferences`) con las claves de `CONTEXT.md` sección 5C y su provider de Riverpod.

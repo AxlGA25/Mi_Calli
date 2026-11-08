@@ -1,0 +1,37 @@
+[
+  {
+    "feather_id": "pluma_tlaloc_01",
+    "emotion_id": "tlaloc_lluvia",
+    "name": "Pluma de Rocío de Jade",
+    "color_hex": "#2A9D8F",
+    "message": "Incluso la tierra más sagrada necesita de la lluvia para volver a florecer. Tus lágrimas hoy son el agua que dará vida mañana."
+  },
+  {
+    "feather_id": "pluma_tonatiuh_01",
+    "emotion_id": "tonatiuh_sol",
+    "name": "Pluma de Rayo Dorado",
+    "color_hex": "#E9C46A",
+    "message": "El calor de tus pensamientos ilumina el valle. Guarda esta claridad en tu corazón para los días de niebla."
+  },
+  {
+    "feather_id": "pluma_ehecatl_01",
+    "emotion_id": "ehecatl_viento",
+    "name": "Pluma de Brisa Turquesa",
+    "color_hex": "#48CAE4",
+    "message": "El viento mueve las ramas, pero las raíces del ahuehuete permanecen firmes. Respira; esta ráfaga también pasará."
+  },
+  {
+    "feather_id": "pluma_mixcoatl_01",
+    "emotion_id": "mixcoatl_tormenta",
+    "name": "Pluma de Obsidiana y Fuego",
+    "color_hex": "#E76F51",
+    "message": "Soltar el fuego interno evita que te queme por dentro. Has entregado tu carga al templo; ahora puedes descansar."
+  },
+  {
+    "feather_id": "pluma_metztli_01",
+    "emotion_id": "metztli_noche",
+    "name": "Pluma de Luz Estelar",
+    "color_hex": "#9D4EDD",
+    "message": "Hasta el mismo Sol descansa bajo la tierra cada noche. Permítete pausar sin culpa; las estrellas cuidan tu sueño."
+  }
+]

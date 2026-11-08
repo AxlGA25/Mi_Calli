@@ -1,0 +1,65 @@
+[
+  {
+    "seed_id": "seed_cempasuchil",
+    "name": "Cempasúchil (Flor de 20 Pétalos)",
+    "rarity": "comun",
+    "waterings_needed": 3,
+    "affinity_emotion": "tlaloc_lluvia",
+    "description": "Sus pétalos guardan la luz del sol para guiar e iluminar los días nublados.",
+    "sprite_stages": ["cemp_0.png", "cemp_1.png", "cemp_2.png", "cemp_3_full.png"]
+  },
+  {
+    "seed_id": "seed_nopal_tunas",
+    "name": "Nopal con Tunas Rojas",
+    "rarity": "comun",
+    "waterings_needed": 3,
+    "affinity_emotion": "mixcoatl_tormenta",
+    "description": "Símbolo de fortaleza; capaz de dar los frutos más dulces incluso en tierras áridas y difíciles.",
+    "sprite_stages": ["nopal_0.png", "nopal_1.png", "nopal_2.png", "nopal_3_full.png"]
+  },
+  {
+    "seed_id": "seed_maiz_morado",
+    "name": "Maíz Sagrado (Centéotl)",
+    "rarity": "comun",
+    "waterings_needed": 3,
+    "affinity_emotion": "tonatiuh_sol",
+    "description": "El sustento de la vida y la creación; crece alto buscando los rayos dorados del valle.",
+    "sprite_stages": ["maiz_0.png", "maiz_1.png", "maiz_2.png", "maiz_3_full.png"]
+  },
+  {
+    "seed_id": "seed_maguey",
+    "name": "Maguey de Mayáhuel",
+    "rarity": "rara",
+    "waterings_needed": 4,
+    "affinity_emotion": "ehecatl_viento",
+    "description": "Sus pencas firmes resisten cualquier vendaval con paciencia y raíces profundas.",
+    "sprite_stages": ["maguey_0.png", "maguey_1.png", "maguey_2.png", "maguey_3_full.png"]
+  },
+  {
+    "seed_id": "seed_cacao",
+    "name": "Árbol de Cacao Real",
+    "rarity": "sagrada",
+    "waterings_needed": 4,
+    "affinity_emotion": "tonatiuh_sol",
+    "description": "Fruto de los dioses que reconforta el corazón cansado y celebra la constancia.",
+    "sprite_stages": ["cacao_0.png", "cacao_1.png", "cacao_2.png", "cacao_3_full.png"]
+  },
+  {
+    "seed_id": "seed_dalia",
+    "name": "Dalia Imperial (Acocoxóchitl)",
+    "rarity": "rara",
+    "waterings_needed": 3,
+    "affinity_emotion": "tlaloc_lluvia",
+    "description": "Flor nacional de tallos huecos que almacenan agua fresca tras la tormenta.",
+    "sprite_stages": ["dalia_0.png", "dalia_1.png", "dalia_2.png", "dalia_3_full.png"]
+  },
+  {
+    "seed_id": "seed_vainilla",
+    "name": "Orquídea de Vainilla (Xanath)",
+    "rarity": "sagrada",
+    "waterings_needed": 4,
+    "affinity_emotion": "metztli_noche",
+    "description": "Aroma suave que florece en la calma y acompaña el descanso profundo.",
+    "sprite_stages": ["vainilla_0.png", "vainilla_1.png", "vainilla_2.png", "vainilla_3_full.png"]
+  }
+]
