@@ -5,10 +5,21 @@
 /// (Línea de la Vida) siempre funciona.
 class SosTexts {
   // Mensaje unificado para la persona de confianza (CONTEXT.md punto 2)
-  static const String mensajePersonaConfianza =
-      'Hola [Nombre], te escribo desde mi refugio porque en este momento '
-      'no me siento muy bien emocionalmente y me ayudaría mucho platicar '
-      'o sentir tu compañía. ¿Tienes un momento?';
+  /// Retorna el mensaje SOS personalizado.
+  /// - Si [nombre] es null, vacío o solo espacios: "Hola, te escribo desde mi refugio..."
+  /// - Si [nombre] tiene contenido: "Hola [nombre], te escribo desde mi refugio..."
+  /// Nunca contiene el placeholder "[Nombre]".
+  static String mensajePersonaConfianza(String? nombre) {
+    final nombreLimpio = (nombre ?? '').trim();
+    if (nombreLimpio.isEmpty) {
+      return 'Hola, te escribo desde mi refugio porque en este momento '
+          'no me siento muy bien emocionalmente y me ayudaría mucho platicar '
+          'o sentir tu compañía. ¿Tienes un momento?';
+    }
+    return 'Hola $nombreLimpio, te escribo desde mi refugio porque en este momento '
+        'no me siento muy bien emocionalmente y me ayudaría mucho platicar '
+        'o sentir tu compañía. ¿Tienes un momento?';
+  }
 
   // Números de emergencia
   static const String lineaDeLaVida = '800 911 2000';

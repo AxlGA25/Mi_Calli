@@ -57,6 +57,14 @@ void main() {
         expect(service.trustedContactPhone, isNull);
       });
 
+      test('app_lock_enabled es true por defecto (candado activado)', () {
+        expect(service.appLockEnabled, isTrue);
+      });
+
+      test('privacy_consent_accepted es false por defecto', () {
+        expect(service.privacyConsentAccepted, isFalse);
+      });
+
       test('currentState devuelve AppSettingsState con todos los defaults', () {
         final state = service.currentState;
 
@@ -65,6 +73,8 @@ void main() {
         expect(state.audioEnabled, isFalse);
         expect(state.reduceMotion, isFalse);
         expect(state.reminderEnabled, isFalse);
+        expect(state.appLockEnabled, isTrue);
+        expect(state.privacyConsentAccepted, isFalse);
         expect(state.reminderTime, isNull);
         expect(state.lastAstralReadingDate, isNull);
         expect(state.trustedContactName, isNull);
@@ -160,6 +170,22 @@ void main() {
         await service.setTrustedContactPhone(null);
         expect(service.trustedContactPhone, isNull);
       });
+
+      test('setAppLockEnabled y getter appLockEnabled', () async {
+        await service.setAppLockEnabled(false);
+        expect(service.appLockEnabled, isFalse);
+
+        await service.setAppLockEnabled(true);
+        expect(service.appLockEnabled, isTrue);
+      });
+
+      test('setPrivacyConsentAccepted y getter privacyConsentAccepted', () async {
+        await service.setPrivacyConsentAccepted(true);
+        expect(service.privacyConsentAccepted, isTrue);
+
+        await service.setPrivacyConsentAccepted(false);
+        expect(service.privacyConsentAccepted, isFalse);
+      });
     });
 
     group('AppSettingsState copyWith', () {
@@ -170,6 +196,8 @@ void main() {
           audioEnabled: true,
           reduceMotion: true,
           reminderEnabled: true,
+          appLockEnabled: true,
+          privacyConsentAccepted: false,
           reminderTime: '20:00',
           lastAstralReadingDate: '2024-12-25',
           trustedContactName: 'Test',
@@ -196,6 +224,8 @@ void main() {
           audioEnabled: false,
           reduceMotion: false,
           reminderEnabled: false,
+          appLockEnabled: true,
+          privacyConsentAccepted: false,
           reminderTime: '20:00',
         );
 
@@ -211,6 +241,8 @@ void main() {
           audioEnabled: false,
           reduceMotion: false,
           reminderEnabled: false,
+          appLockEnabled: true,
+          privacyConsentAccepted: false,
           lastAstralReadingDate: '2024-12-25',
         );
 
@@ -226,6 +258,8 @@ void main() {
           audioEnabled: false,
           reduceMotion: false,
           reminderEnabled: false,
+          appLockEnabled: true,
+          privacyConsentAccepted: false,
           trustedContactName: 'Test',
         );
 
@@ -241,6 +275,8 @@ void main() {
           audioEnabled: false,
           reduceMotion: false,
           reminderEnabled: false,
+          appLockEnabled: true,
+          privacyConsentAccepted: false,
           trustedContactPhone: '5551234567',
         );
 
@@ -265,6 +301,8 @@ void main() {
           audioEnabled: true,
           reduceMotion: true,
           reminderEnabled: true,
+          appLockEnabled: true,
+          privacyConsentAccepted: false,
           reminderTime: '07:30',
           lastAstralReadingDate: '2024-06-15',
           trustedContactName: 'Ana',
@@ -304,6 +342,8 @@ void main() {
           audioEnabled: false,
           reduceMotion: false,
           reminderEnabled: false,
+          appLockEnabled: true,
+          privacyConsentAccepted: false,
           reminderTime: '20:00',
           lastAstralReadingDate: '2024-12-25',
           trustedContactName: 'Test',
@@ -318,6 +358,8 @@ void main() {
           audioEnabled: false,
           reduceMotion: false,
           reminderEnabled: false,
+          appLockEnabled: true,
+          privacyConsentAccepted: false,
           reminderTime: null,
           lastAstralReadingDate: null,
           trustedContactName: null,

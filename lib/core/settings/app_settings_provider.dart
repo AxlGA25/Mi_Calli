@@ -101,6 +101,12 @@ class AppSettingsNotifier extends Notifier<AppSettingsState> {
       _updateState(state.copyWith(clearTrustedContactPhone: true));
     }
   }
+
+  /// Establece el consentimiento de privacidad para datos sensibles.
+  Future<void> setPrivacyConsentAccepted(bool value) async {
+    await _service.setPrivacyConsentAccepted(value);
+    _updateState(state.copyWith(privacyConsentAccepted: value));
+  }
 }
 
 /// Provider del estado de ajustes (AppSettingsState inmutable).

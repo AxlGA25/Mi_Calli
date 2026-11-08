@@ -2,18 +2,50 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'core/constants/app_colors.dart';
-import 'core/constants/sos_texts.dart';
-import 'core/constants/legal_texts.dart';
+import 'core/performance/animation_cache_service.dart';
+import 'core/security/biometric_vault_service.dart';
+import 'core/settings/app_settings_service.dart';
+import 'features/0_onboarding/onboarding_flow.dart';
+import 'features/0_onboarding/biometric_lock_screen.dart';
+import 'features/0_onboarding/main_app_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-void main() {
+/// Provider que inicializa AppSettingsService y expone el estado de onboarding.
+final onboardingStatusProvider = FutureProvider<({bool onboardingDone, bool adultConfirmed})>((ref) async {
+  final prefs = await SharedPreferences.getInstance();
+  final service = AppSettingsService.createForTesting(prefs);
+  return (
+    onboardingDone: service.onboardingDone,
+    adultConfirmed: service.adultConfirmed,
+  );
+});
+
+/// Provider para inicializar BiometricVaultService después de AppSettingsService.
+final biometricVaultInitProvider = FutureProvider<void>((ref) async {
+  await BiometricVaultService.initialize();
+  // Iniciar autenticación inicial
+  final service = BiometricVaultService.instance;
+  await service.authenticateOnStart();
+});
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Inicializar caché de animaciones (assets conocidos; lista vacía por ahora,
+  // se poblará cuando existan assets reales en Fase 4)
+  await AnimationCacheService().initialize([]);
+
   runApp(const ProviderScope(child: MiCalliApp()));
 }
 
-class MiCalliApp extends StatelessWidget {
+class MiCalliApp extends ConsumerWidget {
   const MiCalliApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Inicializar bóveda biométrica (side effect)
+    ref.watch(biometricVaultInitProvider);
+
     return MaterialApp(
       title: 'Mi Calli',
       debugShowCheckedModeBanner: false,
@@ -23,128 +55,151 @@ class MiCalliApp extends StatelessWidget {
           seedColor: AppColors.jade,
           brightness: Brightness.light,
         ),
+        // Configuración global para reducir movimiento
+        pageTransitionsTheme: const PageTransitionsTheme(
+          builders: {
+            TargetPlatform.android: CupertinoPageTransitionsBuilder(),
+            TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+            TargetPlatform.linux: CupertinoPageTransitionsBuilder(),
+            TargetPlatform.macOS: CupertinoPageTransitionsBuilder(),
+            TargetPlatform.windows: CupertinoPageTransitionsBuilder(),
+          },
+        ),
       ),
-      home: const ConstantsDemoScreen(),
+      home: const AppEntryPoint(),
     );
   }
 }
 
-/// Pantalla de prueba que lee un color y un texto desde las constantes.
-class ConstantsDemoScreen extends StatelessWidget {
-  const ConstantsDemoScreen({super.key});
+/// Punto de entrada que decide qué pantalla mostrar según el estado.
+class AppEntryPoint extends ConsumerWidget {
+  const AppEntryPoint({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final onboardingAsync = ref.watch(onboardingStatusProvider);
+    final vaultStateAsync = ref.watch(biometricVaultStateProvider);
+
+    return onboardingAsync.when(
+      data: (status) {
+        final onboardingDone = status.onboardingDone;
+        final adultConfirmed = status.adultConfirmed;
+
+        // Si no se completó el onboarding, mostrarlo
+        if (!onboardingDone) {
+          return OnboardingFlow(onCompleted: () {
+            ref.invalidate(onboardingStatusProvider);
+          });
+        }
+
+        // Onboarding completado: verificar bóveda biométrica
+        if (!adultConfirmed) {
+          return OnboardingFlow(onCompleted: () {
+            ref.invalidate(onboardingStatusProvider);
+          });
+        }
+
+        // Onboarding OK: mostrar pantalla principal protegida por bóveda
+        return ProtectedMainScreen(vaultStateAsync: vaultStateAsync);
+      },
+      loading: () => const _LoadingScreen(),
+      error: (_, __) => const _ErrorScreen(),
+    );
+  }
+}
+
+/// Pantalla principal que maneja el estado de la bóveda biométrica.
+class ProtectedMainScreen extends ConsumerWidget {
+  final AsyncValue<BiometricVaultState> vaultStateAsync;
+
+  const ProtectedMainScreen({super.key, required this.vaultStateAsync});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final vaultState = vaultStateAsync.value ?? BiometricVaultState.locked;
+
+    // Si la bóveda está desbloqueada, mostrar app principal
+    if (vaultState == BiometricVaultState.unlocked) {
+      return const MainAppScreen();
+    }
+
+    // Si está bloqueada, autenticando, o error -> mostrar pantalla de desbloqueo
+    return const BiometricLockScreen();
+  }
+}
+
+/// Pantalla de carga inicial.
+class _LoadingScreen extends StatelessWidget {
+  const _LoadingScreen();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Mi Calli - Prueba de Constantes'),
-        backgroundColor: AppColors.jade,
-        foregroundColor: Colors.white,
+      backgroundColor: AppColors.pergaminoClaro,
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 100,
+              height: 100,
+              decoration: BoxDecoration(
+                color: AppColors.jade.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+                border: Border.all(color: AppColors.jade, width: 2),
+              ),
+              child: const Icon(
+                Icons.psychology_alt,
+                size: 50,
+                color: AppColors.jade,
+              ),
+            ),
+            const SizedBox(height: 24),
+            const CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(AppColors.jade),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Cargando Refugio Quetzalcóatl...',
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                color: AppColors.obsidiana.withValues(alpha: 0.7),
+              ),
+            ),
+          ],
+        ),
       ),
+    );
+  }
+}
+
+/// Pantalla de error.
+class _ErrorScreen extends StatelessWidget {
+  const _ErrorScreen();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColors.pergaminoClaro,
       body: Center(
         child: Padding(
-          padding: const EdgeInsets.all(24.0),
+          padding: const EdgeInsets.all(24),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // Demo: Color desde AppColors
-              Container(
-                width: 120,
-                height: 120,
-                decoration: BoxDecoration(
-                  color: AppColors.jade,
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.jade.withValues(alpha: 0.3),
-                      blurRadius: 12,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: const Center(
-                  child: Text(
-                    'Jade\n#2A9D8F',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
+              Icon(Icons.error_outline, size: 64, color: AppColors.rojoGrana),
+              const SizedBox(height: 16),
+              Text(
+                'Error al iniciar la app',
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  color: AppColors.obsidiana,
                 ),
               ),
-              const SizedBox(height: 32),
-
-              // Demo: Texto desde SosTexts
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: AppColors.turquesa.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColors.turquesa),
-                ),
-                child: Column(
-                  children: [
-                    Text(
-                      'Mensaje SOS (desde SosTexts):',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.obsidiana,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      SosTexts.mensajePersonaConfianza,
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: AppColors.obsidiana.withValues(alpha: 0.8),
-                        fontSize: 14,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Línea de la Vida: ${SosTexts.lineaDeLaVida}',
-                      style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.rojoGrana,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 24),
-
-              // Demo: Texto desde LegalTexts (placeholder)
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: AppColors.oro.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColors.oro),
-                ),
-                child: Column(
-                  children: [
-                    Text(
-                      'Aviso legal (desde LegalTexts):',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.obsidiana,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      LegalTexts.avisoPrincipal.split('\n').firstWhere(
-                        (line) => line.trim().isNotEmpty,
-                        orElse: () => '[AVISO LEGAL]',
-                      ),
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: AppColors.obsidiana.withValues(alpha: 0.7),
-                        fontSize: 12,
-                      ),
-                    ),
-                  ],
+              const SizedBox(height: 8),
+              Text(
+                'Por favor, reinicia la aplicación.',
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: AppColors.obsidiana.withValues(alpha: 0.7),
                 ),
               ),
             ],

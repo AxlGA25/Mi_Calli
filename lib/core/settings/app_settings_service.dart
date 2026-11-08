@@ -24,6 +24,8 @@ class _SettingsKeys {
   static const String lastAstralReadingDate = 'last_astral_reading_date';
   static const String trustedContactName = 'trusted_contact_name';
   static const String trustedContactPhone = 'trusted_contact_phone';
+  static const String appLockEnabled = 'app_lock_enabled';
+  static const String privacyConsentAccepted = 'privacy_consent_accepted';
 }
 
 /// Modelo inmutable para el estado de los ajustes.
@@ -36,6 +38,8 @@ class AppSettingsState {
     required this.audioEnabled,
     required this.reduceMotion,
     required this.reminderEnabled,
+    required this.appLockEnabled,
+    required this.privacyConsentAccepted,
     this.reminderTime,
     this.lastAstralReadingDate,
     this.trustedContactName,
@@ -49,6 +53,8 @@ class AppSettingsState {
       audioEnabled = false,
       reduceMotion = false,
       reminderEnabled = false,
+      appLockEnabled = true,
+      privacyConsentAccepted = false,
       reminderTime = null,
       lastAstralReadingDate = null,
       trustedContactName = null,
@@ -62,6 +68,8 @@ class AppSettingsState {
       audioEnabled: prefs.getBool(_SettingsKeys.audioEnabled) ?? false,
       reduceMotion: prefs.getBool(_SettingsKeys.reduceMotion) ?? false,
       reminderEnabled: prefs.getBool(_SettingsKeys.reminderEnabled) ?? false,
+      appLockEnabled: prefs.getBool(_SettingsKeys.appLockEnabled) ?? true,
+      privacyConsentAccepted: prefs.getBool(_SettingsKeys.privacyConsentAccepted) ?? false,
       reminderTime: prefs.getString(_SettingsKeys.reminderTime),
       lastAstralReadingDate: prefs.getString(_SettingsKeys.lastAstralReadingDate),
       trustedContactName: prefs.getString(_SettingsKeys.trustedContactName),
@@ -74,6 +82,8 @@ class AppSettingsState {
   final bool audioEnabled;
   final bool reduceMotion;
   final bool reminderEnabled;
+  final bool appLockEnabled;
+  final bool privacyConsentAccepted;
   final String? reminderTime;
   final String? lastAstralReadingDate;
   final String? trustedContactName;
@@ -86,6 +96,8 @@ class AppSettingsState {
     bool? audioEnabled,
     bool? reduceMotion,
     bool? reminderEnabled,
+    bool? appLockEnabled,
+    bool? privacyConsentAccepted,
     String? reminderTime,
     String? lastAstralReadingDate,
     String? trustedContactName,
@@ -102,6 +114,8 @@ class AppSettingsState {
       audioEnabled: audioEnabled ?? this.audioEnabled,
       reduceMotion: reduceMotion ?? this.reduceMotion,
       reminderEnabled: reminderEnabled ?? this.reminderEnabled,
+      appLockEnabled: appLockEnabled ?? this.appLockEnabled,
+      privacyConsentAccepted: privacyConsentAccepted ?? this.privacyConsentAccepted,
       reminderTime: clearReminderTime ? null : (reminderTime ?? this.reminderTime),
       lastAstralReadingDate: clearLastAstralReadingDate ? null : (lastAstralReadingDate ?? this.lastAstralReadingDate),
       trustedContactName: clearTrustedContactName ? null : (trustedContactName ?? this.trustedContactName),
@@ -118,6 +132,8 @@ class AppSettingsState {
       other.audioEnabled == audioEnabled &&
       other.reduceMotion == reduceMotion &&
       other.reminderEnabled == reminderEnabled &&
+      other.appLockEnabled == appLockEnabled &&
+      other.privacyConsentAccepted == privacyConsentAccepted &&
       other.reminderTime == reminderTime &&
       other.lastAstralReadingDate == lastAstralReadingDate &&
       other.trustedContactName == trustedContactName &&
@@ -131,6 +147,8 @@ class AppSettingsState {
     audioEnabled,
     reduceMotion,
     reminderEnabled,
+    appLockEnabled,
+    privacyConsentAccepted,
     reminderTime,
     lastAstralReadingDate,
     trustedContactName,
@@ -145,6 +163,8 @@ class AppSettingsState {
       'audioEnabled: $audioEnabled, '
       'reduceMotion: $reduceMotion, '
       'reminderEnabled: $reminderEnabled, '
+      'appLockEnabled: $appLockEnabled, '
+      'privacyConsentAccepted: $privacyConsentAccepted, '
       'reminderTime: $reminderTime, '
       'lastAstralReadingDate: $lastAstralReadingDate, '
       'trustedContactName: $trustedContactName, '
@@ -180,6 +200,8 @@ class AppSettingsService {
     await _prefs.setBool(_SettingsKeys.audioEnabled, state.audioEnabled);
     await _prefs.setBool(_SettingsKeys.reduceMotion, state.reduceMotion);
     await _prefs.setBool(_SettingsKeys.reminderEnabled, state.reminderEnabled);
+    await _prefs.setBool(_SettingsKeys.appLockEnabled, state.appLockEnabled);
+    await _prefs.setBool(_SettingsKeys.privacyConsentAccepted, state.privacyConsentAccepted);
 
     if (state.reminderTime != null) {
       await _prefs.setString(_SettingsKeys.reminderTime, state.reminderTime!);
@@ -269,6 +291,16 @@ class AppSettingsService {
     }
   }
 
+  /// Activa/desactiva el candado de la app (biometría al volver de background).
+  Future<void> setAppLockEnabled(bool value) async {
+    await _prefs.setBool(_SettingsKeys.appLockEnabled, value);
+  }
+
+  /// Establece el consentimiento de privacidad para datos sensibles.
+  Future<void> setPrivacyConsentAccepted(bool value) async {
+    await _prefs.setBool(_SettingsKeys.privacyConsentAccepted, value);
+  }
+
   // ─── Getters individuales ───
 
   bool get onboardingDone => _prefs.getBool(_SettingsKeys.onboardingDone) ?? false;
@@ -276,6 +308,8 @@ class AppSettingsService {
   bool get audioEnabled => _prefs.getBool(_SettingsKeys.audioEnabled) ?? false;
   bool get reduceMotion => _prefs.getBool(_SettingsKeys.reduceMotion) ?? false;
   bool get reminderEnabled => _prefs.getBool(_SettingsKeys.reminderEnabled) ?? false;
+  bool get appLockEnabled => _prefs.getBool(_SettingsKeys.appLockEnabled) ?? true;
+  bool get privacyConsentAccepted => _prefs.getBool(_SettingsKeys.privacyConsentAccepted) ?? false;
   String? get reminderTime => _prefs.getString(_SettingsKeys.reminderTime);
   String? get lastAstralReadingDate => _prefs.getString(_SettingsKeys.lastAstralReadingDate);
   String? get trustedContactName => _prefs.getString(_SettingsKeys.trustedContactName);

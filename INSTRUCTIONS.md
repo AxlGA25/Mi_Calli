@@ -5,6 +5,7 @@
 ## 0. Forma de trabajo (obligatoria)
 * Trabaja **una tarea del `ROADMAP.md` a la vez**, en orden. Al terminar, corre `flutter analyze` (y `flutter test` si hay pruebas) y repórtame el resultado antes de seguir.
 * **No agregues funciones, pantallas, paquetes ni cambios de diseño que no estén en `CONTEXT.md` o `ROADMAP.md`.** Si crees que algo falta o mejoraría el proyecto, propónlo en una nota corta y espera mi aprobación.
+* El nombre de la app es **Mi Calli**.
 * Si algo es ambiguo o dos documentos se contradicen, **pregunta**; no inventes. Si hay conflicto, `CONTEXT.md` (sección 6) manda.
 * **No inventes assets** (animaciones `.riv`/Lottie, audios, ilustraciones). Usa marcadores simples y que la app no se rompa si falta un asset.
 * No instales versiones de paquetes copiadas de la documentación: usa `flutter pub add` y adapta el código a la API actual.
@@ -18,7 +19,8 @@
 * **PROHIBIDO integrar LLMs conversacionales:** no agregues llamadas a OpenAI, Anthropic, Gemini, Groq ni similares para responder al diario. Usa solo `assets/data/feathers.json` y el generador local `TonalpohualliGenerator`.
 * **Filtro SOS antes del cierre:** en `SanctuaryJournalScreen`, ejecuta `SafetyGuardService.containsCrisisKeywords(text)` antes de la animación de cierre.
 * **El SOS nunca bloquea ni borra:** el texto se guarda siempre, aunque el filtro dispare el modal; el usuario puede cerrarlo libremente.
-* **Lista de palabras de riesgo en archivo aparte** (`assets/data/crisis_patterns.json`), fácil de editar y revisar. Debe tolerar acentos, mayúsculas y errores comunes de escritura.
+* **El apoyo siempre es alcanzable:** ninguna pantalla de bloqueo puede impedir llegar a las llamadas de apoyo (Línea de la Vida y 911). El candado de la app sigue el punto 19 de `CONTEXT.md`.
+* **Lista de palabras de riesgo en archivo aparte** (`assets/data/crisis_patterns.json`), fácil de editar y revisar, usada por `SafetyGuardService`. Debe tolerar acentos, mayúsculas y errores comunes de escritura. Usa frases con contexto y una lista de excepciones en lugar de palabras sueltas ambiguas. Las pruebas deben incluir falsos positivos como "cortarme el pelo", "morirme de risa" y "matarme de risa", que **no** deben disparar el aviso.
 * **Solo adultos:** el onboarding exige confirmar ser mayor de 18 años. Si no lo confirma, no se continúa ni se guarda ningún dato (ver `CONTEXT.md`, punto 13).
 * **Textos legales:** usa solo los de `core/constants/legal_texts.dart`. No redactes avisos legales ni afirmaciones clínicas por tu cuenta, y ningún texto debe prometer tratamiento o curación.
 * **Backend (Worker):** al validar el Google ID Token, verifica firma, expiración (`exp`) y que `aud` sea igual al client ID de la app. Si no coincide, responde `401`. El Worker nunca recibe ni guarda texto del diario. `DELETE /api/backup` exige token válido, borra solo la fila del `sub` autenticado, es idempotente y nunca registra el token en logs.

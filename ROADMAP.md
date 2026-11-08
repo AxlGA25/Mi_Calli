@@ -1,36 +1,43 @@
-# ROADMAP.md - Plan de Implementación Paso a Paso
+# ROADMAP.md - Mi Calli - Plan de Implementación Paso a Paso
 
 > **Instrucción para el Agente de Código:** Ejecuta este plan en orden secuencial, **una tarea a la vez**. Cada tarea tiene un "Listo cuando". Al cumplirlo, corre `flutter analyze`, repórtame el resultado y espera mi visto bueno antes de pasar a la siguiente. Lee antes `CONTEXT.md` e `INSTRUCTIONS.md`.
 
-## Fase 1: Cimientos
-- [x] **1.1.** Inicializar el proyecto Flutter y agregar las dependencias con `flutter pub add` (Riverpod, `sqflite_sqlcipher`, `flutter_secure_storage`, `shared_preferences`, `local_auth`, `rive`, `lottie`, `audioplayers`, `google_sign_in`, `http`, `url_launcher`, `uuid`, `intl`, `path`, `flutter_local_notifications`, `cryptography`, `share_plus`, `file_picker`).
-  *Listo cuando:* `flutter pub get` y `flutter analyze` pasan sin errores. **✓ Completado**
-  *Listo cuando:* `flutter pub get` y `flutter analyze` pasan sin errores.
-- [x] **1.2.** Crear la estructura *Feature-First* de `lib/` (Etapa 4 + carpetas adicionales de `CONTEXT.md` sección 4) y las carpetas de `assets/` con un archivo `.gitkeep`. En `pubspec.yaml` declara solo carpetas que existan; los `.riv`, Lottie y audios se declaran cuando haya archivos reales.
-  *Listo cuando:* la app compila y muestra una pantalla vacía. **✓ Completado**
-- [ ] **1.3.** Configurar Riverpod (`ProviderScope` en `main.dart`) y las constantes: paleta, textos SOS (`sos_texts.dart`, con el mensaje unificado) y `legal_texts.dart` con marcadores de posición para el aviso y la política (el texto final lo apruebo yo).
-  *Listo cuando:* un widget de prueba lee un color y un texto desde las constantes.
-- [x] **1.4.** Generar `assets/data/feathers.json` (5 plumas) y `assets/data/seeds_catalog.json` (7 semillas) con los datos de las Etapas 1 y 2.
-  *Listo cuando:* ambos archivos se cargan y se parsean a modelos sin errores. **✓ Completado**
-- [ ] **1.5.** Implementar `LocalDatabaseService` con SQLite cifrado y las 4 tablas de `CONTEXT.md` sección 5A (con `local_id` y `google_uid` nullable). La llave se genera una vez y se guarda en `flutter_secure_storage`.
-  *Listo cuando:* hay una prueba que crea la base, inserta y lee una fila de cada tabla, y el archivo de la base no se puede leer como texto plano.
-- [ ] **1.6.** Implementar `AppSettingsService` (`shared_preferences`) con las claves de `CONTEXT.md` sección 5C y su provider de Riverpod.
-  *Listo cuando:* una prueba guarda y lee cada ajuste y los valores por defecto son los indicados (audio, reducir movimiento y recordatorio apagados).
-- [ ] **1.7.** Implementar `AnimationCacheService` y `OptimizedAnimatedLayer` (`RepaintBoundary` + `TickerMode` + `WidgetsBindingObserver`), con reemplazo estático si falta un asset, y que respete `reduce_motion` y `MediaQuery.disableAnimations`.
-  *Listo cuando:* la app arranca sin los archivos `.riv`/Lottie sin lanzar excepciones, y al activar "reducir movimiento" las animaciones se detienen.
-- [ ] **1.8.** Configuración de plataforma: `allowBackup="false"`, permisos de biometría, `<queries>`, claves de iOS y preparación de notificaciones (sin pedir el permiso todavía), según `INSTRUCTIONS.md` sección 4.
-  *Listo cuando:* la app corre en un dispositivo/emulador Android sin advertencias de manifiesto.
+## Fase 1: Cimientos (COMPLETADA)
+- [x] **1.1.** Proyecto Flutter y dependencias con `flutter pub add`.
+- [x] **1.2.** Estructura *Feature-First* de `lib/` y carpetas de `assets/` con `.gitkeep`.
+- [x] **1.3.** Riverpod, paleta de colores, `sos_texts.dart` y `legal_texts.dart`.
+- [x] **1.4.** `feathers.json` (5 plumas) y `seeds_catalog.json` (7 semillas) con sus modelos y `AssetLoaderService`.
+- [x] **1.5.** `LocalDatabaseService` con SQLite cifrado y las 4 tablas.
+- [x] **1.6.** `AppSettingsService` con sus ajustes y provider de Riverpod.
+- [x] **1.7.** `SafeAnimationWrapper` (`RepaintBoundary` + `TickerMode` + reducir movimiento). *Quedó incompleta: ver 1.10.*
+- [x] **1.8.** Bóveda biométrica (`BiometricVaultService`) y onboarding de mayoría de edad. *Se ajusta en 1.12 y 1.13. La configuración de plataforma que era de esta tarea pasa a 1.9.*
 
-## Fase 2: Etapa 1 - Diario, Climas Emocionales, Seguridad SOS y Bienvenida
-- [ ] **2.1.** Crear `DiaryEntry`, `WisdomFeather` y el enum `PrehispanicEmotion` (`tlalocLluvia`, `tonatiuhSol`, `ehecatlViento`, `mixcoatlTormenta`, `metztliNoche`), más el repositorio local del diario.
-  *Listo cuando:* una prueba guarda una entrada, la recupera por rango de fechas y cuenta emociones de los últimos 7 días.
-- [ ] **2.2.** Implementar `SafetyGuardService` (con `assets/data/crisis_patterns.json`), `SupportContactService` y `SupportNetworkModal` con `url_launcher` (WhatsApp/SMS a la persona de confianza y llamada a `800 911 2000`).
-  *Listo cuando:* pruebas unitarias cubren frases de riesgo con y sin acentos y frases normales (sin falsos positivos obvios), y el modal abre los dos destinos.
-- [ ] **2.3.** Construir `SanctuaryJournalScreen`: selección de clima, gradientes animados, `TextField` tipo pergamino, `TickerMode` con teclado abierto, filtro SOS antes del cierre y diálogo de la Pluma de Sabiduría.
-  *Listo cuando:* se puede escribir, entregar la ofrenda, ver la pluma y la entrada queda guardada, incluso si el SOS aparece.
-- [ ] **2.4.** Construir `OnboardingFlow`: Bienvenida → confirmación de mayoría de edad → aviso → contacto de confianza (omitible). Incluye la pantalla amable de "solo adultos" con Línea de la Vida y `911`. Hasta que exista el Valle, al terminar lleva a `SanctuaryJournalScreen`.
-  *Listo cuando:* la primera vez se ven los pasos y no se repiten; si no confirma ser mayor de 18, ve la pantalla de apoyo y no se guarda ningún dato; el contacto se puede omitir.
-- 🏁 **Punto de control 1:** el diario y la bienvenida funcionan de principio a fin. Reviso contigo antes de seguir.
+## Fase 1B: Correcciones de la Fase 1
+- [x] **1.9.** Configuración de plataforma: en Android, `allowBackup="false"` y reglas para que el sistema no copie la base de datos, permiso `USE_BIOMETRIC`, `<queries>` para `tel`, `sms` y `https`, y `MainActivity` compatible con `local_auth`. En iOS, `NSFaceIDUsageDescription` y `LSApplicationQueriesSchemes` con `tel`, `sms` y `whatsapp`.
+  *Listo cuando:* el manifiesto y el `Info.plist` tienen todo lo anterior, `flutter build apk --debug` pasa, y me dices qué faltaba.
+- [x] **1.10.** `AnimationCacheService` (singleton en `core/performance`) que intenta pre-cargar los `.riv` y Lottie conocidos y, si el archivo no existe, devuelve `null` sin errores. Además `SafeAnimationWrapper` debe pausar las animaciones en `AppLifecycleState.paused` e `inactive`.
+  *Listo cuando:* pruebas cubren archivo ausente, caché reutilizada y pausa por ciclo de vida.
+- [x] **1.11.** En `user_inventory`, `quantity` tiene valor por defecto `1` (no `0`).
+  *Listo cuando:* una prueba inserta un elemento sin cantidad y obtiene `1`. Avísame que debo desinstalar la app de prueba para recrear la base.
+- [x] **1.12.** Candado de la app según `CONTEXT.md` punto 19: bloquea solo tras más de 30 segundos en segundo plano, nunca por `inactive` ni por el propio aviso de huella, y se puede apagar con el ajuste `app_lock_enabled` (nueva clave en `AppSettingsService`).
+  *Listo cuando:* pruebas cubren: volver antes de 30 s no bloquea, volver después sí, `inactive` no bloquea, y con el ajuste apagado nunca bloquea. El botón "Necesito apoyo" de la pantalla de bloqueo se agrega en la 2.2.
+- [x] **1.13.** Textos y consentimiento: `legal_texts.dart` usa los textos aprobados de `docs/privacidad_y_avisos_borrador.md` (Parte A) con el nombre Mi Calli; `sos_texts.dart` vuelve al mensaje de `CONTEXT.md` punto 2 con el nombre del contacto; el onboarding agrega el paso de consentimiento (después de confirmar la mayoría de edad) y guarda `privacy_consent_accepted`.
+  *Listo cuando:* pruebas cubren: sin consentimiento no se avanza, un menor de edad nunca llega al paso de consentimiento ni se guarda nada, y el mensaje de la persona de confianza cambia con y sin nombre.
+- [ ] **1.14.** Auditoría de catálogos y documentos: compara `feathers.json` y `seeds_catalog.json` con las Etapas 1 y 2 y **muéstrame una tabla de diferencias antes de cambiar nada**; renombra `docs/etapa_3_ui_ux_animaciones.md` a `docs/etapa_3_pantallas_ui_ux.md`; verifica que `docs/` tenga las 4 etapas, `HANDOFF_FASE_1.md` y `privacidad_y_avisos_borrador.md`.
+  *Listo cuando:* la tabla de diferencias está revisada por mí y los cambios aprobados aplicados, con las pruebas pasando.
+
+## Fase 2: Etapa 1 - Diario, Climas Emocionales y Seguridad SOS
+- [ ] **2.1.** `DiaryEntry`, el enum `PrehispanicEmotion` (con la tabla de `CONTEXT.md` sección 5D) y `DiaryRepository` (guardar, buscar por rango de fechas y contar emociones de los últimos 7 días).
+  *Listo cuando:* pruebas cubren guardar, recuperar por fechas y contar emociones.
+- [ ] **2.2.** `SafetyGuardService` (con `assets/data/crisis_patterns.json`), `SupportContactService` y `SupportNetworkModal` con `url_launcher`. El modal también se abre desde `BiometricLockScreen` sin autenticar.
+  *Listo cuando:* pruebas cubren frases de riesgo con y sin acentos y los falsos positivos de `INSTRUCTIONS.md`; el modal abre los dos destinos y funciona desde la pantalla de bloqueo.
+- [ ] **2.3.** `EmotionWeatherSelector`: los 5 climas con la tabla de `CONTEXT.md` 5D, gradientes de fondo con `AppColors` y `SafeAnimationWrapper`.
+  *Listo cuando:* al elegir un clima cambia el gradiente y cada clima muestra su emoción correcta.
+- [ ] **2.4.** `SanctuaryJournalScreen`: pergamino de escritura, botón "Necesito apoyo", `TickerMode` con teclado abierto, filtro SOS antes del cierre (sin bloquear el guardado, marcando `triggered_sos`) y diálogo de la Pluma de Sabiduría.
+  *Listo cuando:* se puede escribir, entregar la ofrenda, ver la pluma, y la entrada queda guardada incluso si el SOS aparece.
+- [ ] **2.5.** `DiaryHistoryScreen` **provisional** (lista de entradas con fecha, clima y pluma). Se elimina al terminar el Códice Privado (4.4).
+  *Listo cuando:* muestra las entradas en orden inverso.
+- 🏁 **Punto de control 1:** el diario funciona de principio a fin. Reviso contigo antes de seguir.
 
 ## Fase 3: Etapa 2 - Gamificación, Fuego Sagrado, Chinampa y Tonalpohualli
 - [ ] **3.1.** Implementar `SacredFireAndEvolutionService`: 5 niveles de Quetzalcóatl, racha con colores (Naranja, Dorado, Turquesa) y *Manto de Xólotl* con escudos que empiezan en 1, suben $+1$ por cada 7 días de racha y tienen máximo 2, usando la fecha local `YYYY-MM-DD`.
@@ -49,15 +56,15 @@
   *Listo cuando:* el cielo cambia según la hora del dispositivo.
 - [ ] **4.3.** Agregar las zonas táctiles (Quetzalcóatl, Chinampa, Brasero, Templo del Códice) y el HUD de tres botones (audio, Ajustes, Caracol SOS), con `Semantics` en cada uno. Los destinos que aún no existan pueden ser pantallas vacías.
   *Listo cuando:* cada zona navega a su destino, tiene área de toque de al menos $48 \times 48$ px y etiqueta para lectores de pantalla.
-- [ ] **4.4.** Construir `PrivateCodexScreen` con `local_auth` y la cuadrícula de Calendario Agrícola (detalle en pergamino).
+- [ ] **4.4.** Construir `PrivateCodexScreen` con `local_auth` y la cuadrícula de Calendario Agrícola (detalle en pergamino). Al terminar, elimina el `DiaryHistoryScreen` provisional de la Fase 2.
   *Listo cuando:* sin autenticación no se ve el contenido, y con ella se abre un día con entrada.
 - [ ] **4.5.** Construir `AltarOfCalmModal`: respiración $4-4-6$ con vibración háptica y apoyo visual (texto "inhala/sostén/exhala"), 3 ciclos que cuentan para el Fuego Sagrado, y configuración de la Red de Apoyo Dual.
   *Listo cuando:* completar 3 ciclos suma el día de racha y los dos botones de apoyo funcionan.
-- [ ] **4.6.** Construir `SettingsScreen` (sonido, reducir movimiento, recordatorio, contacto de confianza, aviso y privacidad, exportar/importar diario) y la pantalla "Aviso y privacidad". La sección de respaldo en la nube se agrega en la 5.3.
+- [ ] **4.6.** Construir `SettingsScreen` (sonido, reducir movimiento, candado de la app, recordatorio, contacto de confianza, aviso y privacidad, exportar/importar diario) y la pantalla "Aviso y privacidad". La sección de respaldo en la nube se agrega en la 5.3.
   *Listo cuando:* cada ajuste se guarda y se aplica de inmediato, y la pantalla de aviso muestra los textos de `legal_texts.dart`.
 - [ ] **4.7.** Implementar `ReminderService` con `flutter_local_notifications`: recordatorio diario opcional a la hora elegida, mensaje genérico, permiso pedido solo al activarlo.
   *Listo cuando:* activarlo pide permiso y programa la notificación, desactivarlo la cancela, y el texto no menciona racha ni contenido.
-- [ ] **4.8.** Implementar `DiaryBackupService`: exportar a archivo `.refugio` cifrado con contraseña del usuario (4 tablas locales), compartirlo con `share_plus`, e importarlo con `file_picker` fusionando por `id`.
+- [ ] **4.8.** Implementar `DiaryBackupService`: exportar a archivo `.calli` cifrado con contraseña del usuario (4 tablas locales), compartirlo con `share_plus`, e importarlo con `file_picker` fusionando por `id`.
   *Listo cuando:* una prueba exporta, importa en una base vacía y recupera las mismas entradas; con contraseña incorrecta la importación falla sin dañar datos; el archivo no contiene texto legible.
 - [ ] **4.9.** Pasada de accesibilidad: revisar `Semantics`, escalado de texto al 200 %, contraste y modo "reducir movimiento" en todas las pantallas.
   *Listo cuando:* ninguna pantalla se desborda a 200 % de texto y cada elemento interactivo se anuncia correctamente con el lector de pantalla.

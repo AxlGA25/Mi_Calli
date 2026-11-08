@@ -1,108 +1,117 @@
-/// Textos legales para Refugio Quetzalcóatl.
+/// Textos legales para Mi Calli.
 ///
-/// El texto final será aprobado por el dueño del proyecto.
-/// Aquí se definen marcadores de posición claros para cada texto requerido.
+/// Textos aprobados de docs/privacidad_y_avisos_borrador.md (Parte A).
 class LegalTexts {
-  // ─── Aviso principal (no sustituye ayuda profesional, +18) ───
-  static const String avisoPrincipal = '''
-[AVISO LEGAL - PENDIENTE DE APROBACIÓN]
+  // ─── A1. Bienvenida ───
+  static const String welcomeTitle = 'Bienvenido a tu refugio';
+  static const String welcomeBody =
+      'Aquí puedes desahogarte a tu ritmo, en privado. Quetzalcóatl te '
+      'acompañará en silencio mientras escribes y cuidas tu pequeño valle. '
+      'Todo lo que escribes se queda en tu teléfono.';
 
-Esta aplicación (Refugio Quetzalcóatl) es una herramienta de bienestar emocional
-y diario íntimo gamificado. **NO es un servicio médico, psicológico ni de
-emergencias y NO sustituye la atención profesional.**
+  // ─── A2. Mayoría de edad ───
+  static const String ageGateTitle = 'Antes de entrar';
+  static const String ageGateBody =
+      'Esta app es solo para personas mayores de 18 años.';
+  static const String ageGateConfirm = 'Tengo 18 años o más';
+  static const String ageGateDecline = 'Soy menor de 18';
 
-Está dirigida **exclusivamente a mayores de 18 años**. Al continuar, confirmas
-tener 18 años o más.
+  // ─── A3. Pantalla para menores ───
+  static const String underageTitle = 'Gracias por decirnos';
+  static const String underageBody =
+      'Por ahora este refugio es solo para personas adultas, así que no '
+      'podemos continuar. Si hoy te sientes mal, no tienes que pasarlo solo o '
+      'sola: puedes hablar con alguien de confianza o llamar gratis a la '
+      'Línea de la Vida al 800 911 2000, las 24 horas. Si es una emergencia, '
+      'marca al 911.';
+  static const String underageButtonLineaDeLaVida = 'Llamar a la Línea de la Vida';
+  static const String underageButtonEmergencias = 'Llamar al 911';
 
-Si te sientes en crisis o riesgo inmediato, contacta a servicios de emergencia
-o a la Línea de la Vida: 800 911 2000 (México).
-''';
+  // ─── A4. Aviso importante ───
+  static const String disclaimerTitle = 'Un aviso importante';
+  static const String disclaimerBody =
+      'Mi Calli es un espacio de bienestar y autocuidado. No es un servicio '
+      'médico, psicológico ni de emergencias, y no sustituye la atención de '
+      'una persona profesional. Si estás en peligro o necesitas ayuda urgente, '
+      'llama al 911. Si necesitas hablar con alguien, la Línea de la Vida '
+      '(800 911 2000) atiende gratis las 24 horas.';
+  static const String disclaimerPrivacyLink = 'Leer aviso de privacidad';
 
-  // ─── Confirmación de mayoría de edad ───
-  static const String confirmacionMayoriaEdad = '''
-[CONFIRMACIÓN +18 - PENDIENTE DE APROBACIÓN]
+  // ─── A5. Resumen de privacidad ───
+  static const String privacySummaryTitle = 'Tu diario es solo tuyo';
+  static const String privacySummaryBody =
+      '• Lo que escribes se guarda cifrado en este teléfono. Nunca lo '
+      'enviamos a ningún servidor.\n'
+      '• Tu progreso (nivel, racha, plantas) solo se respalda en la nube si '
+      'tú inicias sesión con Google.\n'
+      '• No usamos publicidad ni compartimos tus datos.\n'
+      '• Puedes exportar tu diario cifrado cuando quieras.';
+  static const String privacySummaryButton = 'Ver aviso de privacidad completo';
 
-¿Confirmas que tienes 18 años o más?
+  // ─── A6. Respaldo en la nube ───
+  static const String cloudConsentTitle = 'Respaldar mi progreso';
+  static const String cloudConsentBody =
+      'Si inicias sesión con Google, guardaremos en la nube únicamente tu '
+      'progreso numérico: nivel de Quetzalcóatl, días de racha, plantas y '
+      'reliquias desbloqueadas. Tu diario no se sube. Si cambias de teléfono, '
+      'podrás recuperar este progreso. Puedes pedir que se elimine tu respaldo '
+      'en cualquier momento.';
+  static const String cloudConsentContinue = 'Continuar con Google';
+  static const String cloudConsentLater = 'Ahora no';
 
-Esta app contiene contenido de bienestar emocional y no es adecuada para
-menores de edad. Si eres menor de 18 años, por favor busca apoyo con un
-adulto de confianza o contacta a la Línea de la Vida: 800 911 2000.
-''';
+  // ─── A7. Contacto de confianza ───
+  static const String contactExplain =
+      'Puedes guardar a una persona de confianza. Su nombre y teléfono se '
+      'quedan solo en tu teléfono. Si algún día lo necesitas, la app abrirá '
+      'WhatsApp con un mensaje listo para que tú decidas si lo envías. Nunca '
+      'enviamos nada sin que tú lo toques.';
 
-  // ─── Pantalla "Solo adultos" (si no confirma mayoría de edad) ───
-  static const String pantallaSoloAdultos = '''
-[PANTALLA SOLO ADULTOS - PENDIENTE DE APROBACIÓN]
+  // ─── A8. Exportar diario ───
+  static const String exportWarningTitle = 'Exportar mi diario';
+  static const String exportWarningBody =
+      'Se creará un archivo cifrado con tu diario y tu progreso. Elige una '
+      'contraseña que recuerdes: no la guardamos y, si la olvidas, no '
+      'podremos recuperar el archivo. Guarda el archivo en un lugar seguro; '
+      'quien tenga el archivo y la contraseña podrá leerlo.';
 
-Esta aplicación es solo para mayores de 18 años.
+  // ─── A9. Importar diario ───
+  static const String importConfirm =
+      'Vas a agregar al refugio las entradas de este archivo. No se borrarán '
+      'las que ya tienes ni se duplicarán las repetidas. Necesitarás la '
+      'contraseña con la que lo exportaste.';
 
-Si estás pasando por un momento difícil, no estás solo:
-• Línea de la Vida (México): 800 911 2000
-• Emergencias: 911
+  // ─── A10. Recordatorio ───
+  static const String reminderExplain =
+      'Si quieres, te enviamos un recordatorio amable a la hora que elijas. '
+      'Puedes apagarlo cuando quieras. El permiso de notificaciones solo se '
+      'pide al activarlo.';
+  static const String reminderNotificationText =
+      'Tu refugio te espera cuando quieras pasar. 🌿';
 
-Por favor, busca apoyo con un adulto de confianza o con los números arriba.
-''';
+  // ─── A12. Consentimiento (guardar entradas cifradas en el teléfono) ───
+  static const String consentTitle = 'Tu consentimiento';
+  static const String consentBody =
+      'Lo que escribes en Mi Calli puede hablar de cómo te sientes, y eso es '
+      'información delicada. Para guardarlo en este teléfono, cifrado y solo '
+      'para ti, necesitamos tu permiso. No lo enviamos a ningún servidor.';
+  static const String consentCheck =
+      'Entiendo y acepto que Mi Calli guarde mis entradas cifradas en este teléfono.';
+  static const String consentContinue = 'Continuar';
+  static const String consentDecline = 'Ahora no';
+  static const String consentDeclineBody =
+      'Sin tu permiso no podemos guardar tus entradas, así que por ahora no '
+      'podemos continuar. Cuando quieras, aquí estaremos.';
 
-  // ─── Confirmación de borrado de respaldo en la nube ───
-  static const String confirmacionBorradoRespaldo = '''
-[CONFIRMACIÓN ELIMINAR RESPALDO - PENDIENTE DE APROBACIÓN]
-
-¿Eliminar tu respaldo en la nube?
-
-Esto borrará tu progreso de gamificación guardado en Cloudflare (nivel de
-Quetzalcóatl, racha del Fuego Sagrado, semillas y reliquias desbloqueadas).
-
-**Tus datos locales NO se borran**: tu diario, la Chinampa y el Códice
-permanecen intactos en tu teléfono. Tu google_uid se pondrá en NULL y se
-cerrará la sesión de Google.
-
-Esta acción no se puede deshacer. Podrás volver a respaldar después como
-cuenta nueva si lo deseas.
-''';
+  // ─── A11. Eliminar mi respaldo ───
+  static const String deleteBackupTitle = 'Eliminar mi respaldo';
+  static const String deleteBackupBody =
+      'Se borrará de la nube el progreso que respaldaste con tu cuenta de '
+      'Google. Tu diario y tu progreso en este teléfono no se tocan. Después '
+      'podrás volver a respaldar si quieres. Esta acción no se puede deshacer.';
+  static const String deleteBackupConfirm = 'Eliminar respaldo';
+  static const String deleteBackupCancel = 'Cancelar';
 
   // ─── URL de política de privacidad (para Play Store) ───
   static const String urlPoliticaPrivacidad =
       'https://[TU_DOMINIO].com/privacidad'; // TODO: Reemplazar con URL real
-
-  // ─── Texto para formulario de seguridad de datos Play Store ───
-  static const String datosRecolectados = '''
-[DATOS RECOLECTADOS - PENDIENTE DE APROBACIÓN]
-
-En el dispositivo (local, cifrado):
-• Entradas del diario (texto, emoción, fecha) - NUNCA sale del teléfono
-• Estado de la Chinampa (plantas, riegos, cosechas)
-• Clave de cifrado (flutter_secure_storage)
-• Ajustes (shared_preferences)
-• Autenticación biométrica (local_auth - solo para abrir Códice)
-
-En la nube (Cloudflare D1, SOLO con login Google):
-• google_uid (identificador único de Google)
-• Hash SHA-256 del email (opcional, para soporte)
-• Progreso numérico: XP, nivel, rachas, escudos, semillas/reliquias desbloqueadas
-• NUNCA: contenido del diario, emociones, textos personales
-
-Exportación manual (archivo .refugio):
-• Usuario elige contraseña (AES-256-GCM)
-• Contiene: 4 tablas locales cifradas
-• Se comparte vía share_plus (hoja del sistema)
-• NUNCA pasa por servidores
-''';
-
-  // ─── Aviso de exportación/importación ───
-  static const String avisoExportacion = '''
-[AVISO EXPORTACIÓN - PENDIENTE DE APROBACIÓN]
-
-El archivo .refugio se cifra con TU contraseña (AES-256-GCM).
-**Si olvidas la contraseña, el archivo NO se puede recuperar.**
-La contraseña no se guarda en ningún lado.
-
-El archivo contiene tu diario completo y estado de la Chinampa.
-Cómpartelo solo contigo mismo (ej. guardarlo en tu nube personal).
-''';
-
-  static const String avisoImportacion = '''
-[AVISO IMPORTACIÓN - PENDIENTE DE APROBACIÓN]
-
-Al importar, las entradas se fusionan por ID sin duplicar.
-Si la contraseña es incorrecta, la importación falla sin dañar tus datos.
-''';
 }

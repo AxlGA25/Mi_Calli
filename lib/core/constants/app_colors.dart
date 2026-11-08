@@ -83,4 +83,8 @@ class AppColors {
   static const Color error = rojoGrana;
   static const Color surface = Color(0xFFFAFAFA);
   static const Color surfaceVariant = Color(0xFFF5F5F5);
+
+  // Fondos de pantalla
+  static const Color pergaminoClaro = Color(0xFFFDFBF7);
+  static const Color rosaSuave = Color(0xFFF8C8DC);
 }

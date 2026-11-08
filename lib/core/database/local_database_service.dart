@@ -10,6 +10,10 @@
 // - user_gamification
 // - chinampa_slots
 // - user_inventory
+//
+// NOTA: Las pruebas de integración con base de datos real (SQLCipher en dispositivo)
+// se realizarán en el punto de control 1 (checkpoint 1) usando un dispositivo físico.
+// Los tests unitarios actuales usan mocks que replican la lógica de límites UTC.
 
 import 'dart:convert';
 import 'dart:math';
@@ -17,6 +21,7 @@ import 'dart:math';
 import 'package:sqflite_sqlcipher/sqflite.dart';
 import 'package:path/path.dart' as path;
 
+import '../utils/local_day_bounds.dart';
 import 'secure_storage_interface.dart';
 import 'secure_storage_impl.dart';
 import 'secure_storage_mock.dart';
@@ -244,6 +249,12 @@ class LocalDatabaseService {
 
   // ─── API Pública ───
 
+  /// Inicializa la base de datos (llama a _ensureInitialized).
+  /// Útil para tests y para inicialización explícita.
+  Future<void> initialize() async {
+    await _ensureInitialized();
+  }
+
   /// Obtiene la base de datos (lanza si no inicializada).
   Database get database {
     if (_database == null) {
@@ -258,6 +269,9 @@ class LocalDatabaseService {
   // ─── diary_entries ───
 
   /// Inserta una entrada de diario.
+  ///
+  /// Almacena created_at en UTC con precisión de milisegundos (sin microsegundos)
+  /// para que la comparación de texto ISO 8601 sea correcta.
   Future<int> insertDiaryEntry({
     required String id,
     required DateTime createdAt,
@@ -267,9 +281,10 @@ class LocalDatabaseService {
     String? wateredSeedId,
     bool triggeredSos = false,
   }) async {
+    final createdAtMillis = LocalDayBounds.truncateToMillis(createdAt);
     return _database!.insert('diary_entries', {
       'id': id,
-      'created_at': createdAt.toIso8601String(),
+      'created_at': createdAtMillis.toIso8601String(),
       'emotion_id': emotionId,
       'content': content,
       'feather_id': featherId,
@@ -278,27 +293,38 @@ class LocalDatabaseService {
     });
   }
 
-  /// Obtiene entradas por rango de fechas.
+  /// Obtiene entradas por rango de fechas (inclusive, usando fecha local YYYY-MM-DD).
+  ///
+  /// Según CONTEXT.md punto 7: las fechas se calculan con la fecha local del dispositivo.
+  /// Convierte los límites a UTC y consulta con created_at >= ? AND created_at < ?
+  /// para no depender de la función date() de SQLite.
   Future<List<Map<String, dynamic>>> getDiaryEntriesByDateRange({
     required DateTime start,
     required DateTime end,
   }) async {
+    final bounds = LocalDayBounds.rangeUtc(start, end);
+
     return _database!.query(
       'diary_entries',
-      where: 'created_at BETWEEN ? AND ?',
-      whereArgs: [start.toIso8601String(), end.toIso8601String()],
+      where: 'created_at >= ? AND created_at < ?',
+      whereArgs: [bounds.startUtc.toIso8601String(), bounds.endUtc.toIso8601String()],
       orderBy: 'created_at DESC',
     );
   }
 
-  /// Cuenta emociones en los últimos N días.
+  /// Cuenta emociones en los últimos N días (usando fecha local).
+  ///
+  /// Incluye el día de hoy y [days-1] días anteriores.
+  /// Convierte el límite a UTC y consulta con created_at >= ?
+  /// para no depender de la función date() de SQLite.
   Future<Map<String, int>> countEmotionsLastDays(int days) async {
-    final since = DateTime.now().subtract(Duration(days: days));
+    final sinceUtc = LocalDayBounds.sinceUtc(days);
+
     final rows = await _database!.query(
       'diary_entries',
       columns: ['emotion_id'],
       where: 'created_at >= ?',
-      whereArgs: [since.toIso8601String()],
+      whereArgs: [sinceUtc.toIso8601String()],
     );
 
     final counts = <String, int>{};

@@ -45,5 +45,15 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<!-- Face ID / Touch ID para la bóveda biométrica -->
+	<key>NSFaceIDUsageDescription</key>
+	<string>Mi Calli usa Face ID / Touch ID para proteger tu diario privado. Tu rostro o huella nunca salen de este dispositivo.</string>
+	<!-- Esquemas para url_launcher: tel, sms, whatsapp -->
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>tel</string>
+		<string>sms</string>
+		<string>whatsapp</string>
+	</array>
 </dict>
 </plist>
