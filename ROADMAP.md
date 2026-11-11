@@ -23,7 +23,7 @@
   *Listo cuando:* pruebas cubren: volver antes de 30 s no bloquea, volver después sí, `inactive` no bloquea, y con el ajuste apagado nunca bloquea. El botón "Necesito apoyo" de la pantalla de bloqueo se agrega en la 2.2.
 - [x] **1.13.** Textos y consentimiento: `legal_texts.dart` usa los textos aprobados de `docs/privacidad_y_avisos_borrador.md` (Parte A) con el nombre Mi Calli; `sos_texts.dart` vuelve al mensaje de `CONTEXT.md` punto 2 con el nombre del contacto; el onboarding agrega el paso de consentimiento (después de confirmar la mayoría de edad) y guarda `privacy_consent_accepted`.
   *Listo cuando:* pruebas cubren: sin consentimiento no se avanza, un menor de edad nunca llega al paso de consentimiento ni se guarda nada, y el mensaje de la persona de confianza cambia con y sin nombre.
-- [ ] **1.14.** Auditoría de catálogos y documentos: compara `feathers.json` y `seeds_catalog.json` con las Etapas 1 y 2 y **muéstrame una tabla de diferencias antes de cambiar nada**; renombra `docs/etapa_3_ui_ux_animaciones.md` a `docs/etapa_3_pantallas_ui_ux.md`; verifica que `docs/` tenga las 4 etapas, `HANDOFF_FASE_1.md` y `privacidad_y_avisos_borrador.md`.
+- [x] **1.14.** Auditoría de catálogos y documentos: compara `feathers.json` y `seeds_catalog.json` con las Etapas 1 y 2 y **muéstrame una tabla de diferencias antes de cambiar nada**; renombra `docs/etapa_3_ui_ux_animaciones.md` a `docs/etapa_3_pantallas_ui_ux.md`; verifica que `docs/` tenga las 4 etapas, `HANDOFF_FASE_1.md` y `privacidad_y_avisos_borrador.md`.
   *Listo cuando:* la tabla de diferencias está revisada por mí y los cambios aprobados aplicados, con las pruebas pasando.
 
 ## Fase 2: Etapa 1 - Diario, Climas Emocionales y Seguridad SOS
@@ -31,9 +31,9 @@
   *Listo cuando:* pruebas cubren guardar, recuperar por fechas y contar emociones.
 - [x] **2.2.** `SafetyGuardService` (con `assets/data/crisis_patterns.json`), `SupportContactService` y `SupportNetworkModal` con `url_launcher`. El modal también se abre desde `BiometricLockScreen` sin autenticar.
   *Listo cuando:* pruebas cubren frases de riesgo con y sin acentos y los falsos positivos de `INSTRUCTIONS.md`; el modal abre los dos destinos y funciona desde la pantalla de bloqueo.
-- [ ] **2.3.** `EmotionWeatherSelector`: los 5 climas con la tabla de `CONTEXT.md` 5D, gradientes de fondo con `AppColors` y `SafeAnimationWrapper`.
+- [x] **2.3.** `EmotionWeatherSelector`: los 5 climas con la tabla de `CONTEXT.md` 5D, gradientes de fondo con `AppColors` y `SafeAnimationWrapper`.
   *Listo cuando:* al elegir un clima cambia el gradiente y cada clima muestra su emoción correcta.
-- [ ] **2.4.** `SanctuaryJournalScreen`: pergamino de escritura, botón "Necesito apoyo", `TickerMode` con teclado abierto, filtro SOS antes del cierre (sin bloquear el guardado, marcando `triggered_sos`) y diálogo de la Pluma de Sabiduría.
+- [x] **2.4.** `SanctuaryJournalScreen`: pergamino de escritura, botón "Necesito apoyo", `TickerMode` con teclado abierto, filtro SOS antes del cierre (sin bloquear el guardado, marcando `triggered_sos`) y diálogo de la Pluma de Sabiduría.
   *Listo cuando:* se puede escribir, entregar la ofrenda, ver la pluma, y la entrada queda guardada incluso si el SOS aparece.
 - [ ] **2.5.** `DiaryHistoryScreen` **provisional** (lista de entradas con fecha, clima y pluma). Se elimina al terminar el Códice Privado (4.4).
   *Listo cuando:* muestra las entradas en orden inverso.

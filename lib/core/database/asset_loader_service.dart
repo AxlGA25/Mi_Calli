@@ -156,6 +156,18 @@ class AssetLoaderService {
     _cachedFeathers = null;
     _cachedSeeds = null;
   }
+
+  /// Establece la caché de plumas directamente (solo para tests).
+  ///
+  /// Evita la carga de assets en entornos de test donde rootBundle no está disponible.
+  void setFeathersCacheForTesting(List<WisdomFeather> feathers) {
+    _cachedFeathers = feathers;
+  }
+
+  /// Establece la caché de semillas directamente (solo para tests).
+  void setSeedsCacheForTesting(List<SeedCatalogItem> seeds) {
+    _cachedSeeds = seeds;
+  }
 }
 
 /// Excepción personalizada para errores de carga de assets.

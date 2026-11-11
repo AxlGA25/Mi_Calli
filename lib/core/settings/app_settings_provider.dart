@@ -8,6 +8,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'app_settings_service.dart';
 
 /// Provider del servicio de ajustes (para inyección en el Notifier).
+/// DEBE ser sobrescrito en main.dart con:
+/// ProviderScope(overrides: [appSettingsServiceProvider.overrideWithValue(service)])
 final appSettingsServiceProvider = Provider<AppSettingsService>((ref) {
   throw UnimplementedError(
     'appSettingsServiceProvider debe ser sobrescrito en main.dart con '
@@ -16,12 +18,16 @@ final appSettingsServiceProvider = Provider<AppSettingsService>((ref) {
 });
 
 /// Notifier que expone AppSettingsState y notifica cambios.
+/// El servicio se lee en build() (patrón estándar Riverpod) y se guarda
+/// en un campo final, garantizando que nunca se usa sin estar inicializado.
 class AppSettingsNotifier extends Notifier<AppSettingsState> {
   late final AppSettingsService _service;
 
   @override
   AppSettingsState build() {
-    _service = ref.read(appSettingsServiceProvider);
+    // Leer el servicio en build() - es el patrón estándar de Riverpod.
+    // Si no está sobrescrito, lanzará UnimplementedError con mensaje claro.
+    _service = ref.watch(appSettingsServiceProvider);
     return _service.currentState;
   }
 
@@ -100,6 +106,12 @@ class AppSettingsNotifier extends Notifier<AppSettingsState> {
     } else {
       _updateState(state.copyWith(clearTrustedContactPhone: true));
     }
+  }
+
+  /// Activa/desactiva el candado de la app (biometría al volver de background).
+  Future<void> setAppLockEnabled(bool value) async {
+    await _service.setAppLockEnabled(value);
+    _updateState(state.copyWith(appLockEnabled: value));
   }
 
   /// Establece el consentimiento de privacidad para datos sensibles.

@@ -9,10 +9,11 @@ import 'package:mi_calli/features/1_sanctuary_journal/models/prehispanic_emotion
 /// Implementa solo los métodos que usa DiaryRepository.
 /// Usa LocalDayBounds para la lógica de límites UTC (misma clase que el servicio real).
 class MockLocalDatabaseService {
-  MockLocalDatabaseService();
+  MockLocalDatabaseService({DateTime? fixedNow}) : _fixedNow = fixedNow;
 
   final List<Map<String, dynamic>> _diaryEntries = [];
   bool _isInitialized = false;
+  final DateTime? _fixedNow;
 
   Future<void> initialize() async {
     _isInitialized = true;
@@ -59,7 +60,10 @@ class MockLocalDatabaseService {
   }
 
   Future<Map<String, int>> countEmotionsLastDays(int days) async {
-    final sinceUtc = LocalDayBounds.sinceUtc(days);
+    // Usar _fixedNow si está disponible, si no DateTime.now() (para compatibilidad)
+    final today = _fixedNow ?? DateTime.now();
+    final since = today.subtract(Duration(days: days - 1));
+    final sinceUtc = LocalDayBounds.startOfDayUtc(since);
 
     final counts = <String, int>{};
     for (final entry in _diaryEntries) {
@@ -225,9 +229,11 @@ void main() {
           triggeredSos: entry.triggeredSos,
         );
 
+        // Usar fecha local (sin hora) para consultar, ya que LocalDayBounds espera fechas locales
+        final localDate = entry.createdAt.toLocal();
         final entries = await mockDb.getDiaryEntriesByDateRange(
-          start: entry.createdAt,
-          end: entry.createdAt,
+          start: DateTime(localDate.year, localDate.month, localDate.day),
+          end: DateTime(localDate.year, localDate.month, localDate.day),
         );
 
         expect(entries.length, equals(1));
@@ -260,9 +266,11 @@ void main() {
           triggeredSos: entry.triggeredSos,
         );
 
+        // Usar fecha local (sin hora) para consultar
+        final localDate = entry.createdAt.toLocal();
         final entries = await mockDb.getDiaryEntriesByDateRange(
-          start: entry.createdAt,
-          end: entry.createdAt,
+          start: DateTime(localDate.year, localDate.month, localDate.day),
+          end: DateTime(localDate.year, localDate.month, localDate.day),
         );
 
         expect(entries.length, equals(1));
@@ -274,7 +282,10 @@ void main() {
         final mockDb = MockLocalDatabaseService();
         await mockDb.initialize();
 
-        final now = DateTime.now().toUtc();
+        // Usar una fecha local fija (2026-06-15 12:00:00 local) para que el test sea determinista
+        final fixedLocalDate = DateTime(2026, 6, 15, 12, 0, 0);
+        final fixedUtcDate = fixedLocalDate.toUtc();
+
         final entry1 = DiaryEntry.create(
           emotion: PrehispanicEmotion.tlalocLluvia,
           content: 'Entrada 1',
@@ -286,17 +297,17 @@ void main() {
           featherId: 'pluma_tonatiuh_01',
         );
 
-        // Forzar misma fecha para ambas
+        // Forzar misma fecha para ambas (usar la misma fecha UTC base)
         final sameDayEntry1 = DiaryEntry(
           id: entry1.id,
-          createdAt: now,
+          createdAt: fixedUtcDate,
           emotion: entry1.emotion,
           content: entry1.content,
           featherId: entry1.featherId,
         );
         final sameDayEntry2 = DiaryEntry(
           id: entry2.id,
-          createdAt: now.add(const Duration(hours: 2)),
+          createdAt: fixedUtcDate.add(const Duration(hours: 2)),
           emotion: entry2.emotion,
           content: entry2.content,
           featherId: entry2.featherId,
@@ -317,9 +328,10 @@ void main() {
           featherId: sameDayEntry2.featherId,
         );
 
+        // Usar la fecha local fija para consultar
         final entries = await mockDb.getDiaryEntriesByDateRange(
-          start: DateTime(now.year, now.month, now.day, 0, 0, 0),
-          end: DateTime(now.year, now.month, now.day, 23, 59, 59, 999),
+          start: DateTime(fixedLocalDate.year, fixedLocalDate.month, fixedLocalDate.day),
+          end: DateTime(fixedLocalDate.year, fixedLocalDate.month, fixedLocalDate.day),
         );
 
         expect(entries.length, equals(2));
@@ -521,36 +533,41 @@ void main() {
 
     group('countEmotionsLastDays (método del mock)', () {
       test('cuenta emociones en los últimos 7 días por defecto', () async {
-        final mockDb = MockLocalDatabaseService();
+        // Usar una fecha fija (2026-06-15) para que el test sea determinista
+        final fixedNow = DateTime(2026, 6, 15, 12, 0, 0);
+        final mockDb = MockLocalDatabaseService(fixedNow: fixedNow);
         await mockDb.initialize();
 
-        final now = DateTime.now().toUtc();
-
         // Crear entradas: 3 en la última semana, 1 hace 10 días (fuera de rango)
+        // fixedNow = 2026-06-15
+        // - 1 día = 2026-06-14 (dentro de 7 días)
+        // - 3 días = 2026-06-12 (dentro de 7 días)
+        // - 5 días = 2026-06-10 (dentro de 7 días)
+        // - 10 días = 2026-06-05 (fuera de 7 días)
         await mockDb.insertDiaryEntry(
           id: 'e1',
-          createdAt: now.subtract(const Duration(days: 1)),
+          createdAt: fixedNow.subtract(const Duration(days: 1)).toUtc(),
           emotionId: 'tonatiuh_sol',
           content: 'Ayer',
           featherId: 'pluma_tonatiuh_01',
         );
         await mockDb.insertDiaryEntry(
           id: 'e2',
-          createdAt: now.subtract(const Duration(days: 3)),
+          createdAt: fixedNow.subtract(const Duration(days: 3)).toUtc(),
           emotionId: 'tonatiuh_sol',
           content: 'Hace 3 días',
           featherId: 'pluma_tonatiuh_01',
         );
         await mockDb.insertDiaryEntry(
           id: 'e3',
-          createdAt: now.subtract(const Duration(days: 5)),
+          createdAt: fixedNow.subtract(const Duration(days: 5)).toUtc(),
           emotionId: 'tlaloc_lluvia',
           content: 'Hace 5 días',
           featherId: 'pluma_tlaloc_01',
         );
         await mockDb.insertDiaryEntry(
           id: 'e4',
-          createdAt: now.subtract(const Duration(days: 10)),
+          createdAt: fixedNow.subtract(const Duration(days: 10)).toUtc(),
           emotionId: 'ehecatl_viento',
           content: 'Hace 10 días (fuera)',
           featherId: 'pluma_ehecatl_01',
@@ -564,42 +581,46 @@ void main() {
       });
 
       test('permite personalizar número de días', () async {
-        final mockDb = MockLocalDatabaseService();
+        // Usar una fecha fija (2026-06-15) para que el test sea determinista
+        final fixedNow = DateTime(2026, 6, 15, 12, 0, 0);
+        final mockDb = MockLocalDatabaseService(fixedNow: fixedNow);
         await mockDb.initialize();
 
-        final now = DateTime.now().toUtc();
-
+        // fixedNow = 2026-06-15
+        // - 2 días = 2026-06-13
+        // - 5 días = 2026-06-10
+        // - 10 días = 2026-06-05
         await mockDb.insertDiaryEntry(
           id: 'e1',
-          createdAt: now.subtract(const Duration(days: 2)),
+          createdAt: fixedNow.subtract(const Duration(days: 2)).toUtc(),
           emotionId: 'mixcoatl_tormenta',
           content: 'Hace 2 días',
           featherId: 'pluma_mixcoatl_01',
         );
         await mockDb.insertDiaryEntry(
           id: 'e2',
-          createdAt: now.subtract(const Duration(days: 5)),
+          createdAt: fixedNow.subtract(const Duration(days: 5)).toUtc(),
           emotionId: 'mixcoatl_tormenta',
           content: 'Hace 5 días',
           featherId: 'pluma_mixcoatl_01',
         );
         await mockDb.insertDiaryEntry(
           id: 'e3',
-          createdAt: now.subtract(const Duration(days: 10)),
+          createdAt: fixedNow.subtract(const Duration(days: 10)).toUtc(),
           emotionId: 'mixcoatl_tormenta',
           content: 'Hace 10 días',
           featherId: 'pluma_mixcoatl_01',
         );
 
-        // Solo últimos 3 días
+        // Solo últimos 3 días (desde 2026-06-13)
         final counts3 = await mockDb.countEmotionsLastDays(3);
         expect(counts3['mixcoatl_tormenta'], equals(1));
 
-        // Últimos 7 días
+        // Últimos 7 días (desde 2026-06-09)
         final counts7 = await mockDb.countEmotionsLastDays(7);
         expect(counts7['mixcoatl_tormenta'], equals(2));
 
-        // Últimos 15 días
+        // Últimos 15 días (desde 2026-06-01)
         final counts15 = await mockDb.countEmotionsLastDays(15);
         expect(counts15['mixcoatl_tormenta'], equals(3));
       });

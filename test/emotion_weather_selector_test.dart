@@ -1,12 +1,17 @@
-// Tests de widget para EmotionWeatherSelector.
+// Tests de widget para EmotionWeatherSelector y EmotionGradientBackground.
 //
 // Verifica:
 // - Cada clima muestra su texto correcto (deidad + etiqueta emocional).
 // - Al tocar uno se llama onChanged con la emoción correcta.
-// - El gradiente cambia con la selección.
-// - Con reducir movimiento la duración es cero.
-// - El widget no se desborda con texto al 200 %.
+// - El gradiente de fondo (EmotionGradientBackground) cambia con la selección.
+// - Con reducir movimiento la duración de la animación es cero.
+// - El widget no se desborda con texto al 200 % (dentro de contenedor desplazable).
 // - Cada opción tiene su etiqueta de accesibilidad (Semantics).
+// - Área táctil mínima de 48x48 en cada opción.
+// - Texto visible con nombre de emoción (no solo color ni icono).
+// - No usa palabras clínicas ni de diagnóstico.
+// - Animación de escala al seleccionar (respetando reduceMotion).
+// - EmotionWeatherSelector funciona dentro de un SingleChildScrollView sin error de altura ilimitada.
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -14,9 +19,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:mi_calli/core/constants/app_colors.dart';
+import 'package:mi_calli/core/performance/safe_animation_wrapper.dart';
 import 'package:mi_calli/core/settings/app_settings_provider.dart';
 import 'package:mi_calli/core/settings/app_settings_service.dart';
 import 'package:mi_calli/features/1_sanctuary_journal/models/prehispanic_emotion.dart';
+import 'package:mi_calli/features/1_sanctuary_journal/presentation/emotion_gradient_background.dart';
 import 'package:mi_calli/features/1_sanctuary_journal/presentation/emotion_weather_selector.dart';
 
 // Helper para crear AppSettingsService con reduceMotion configurado
@@ -30,43 +37,124 @@ Future<AppSettingsService> createSettingsServiceWithReduceMotion(bool reduceMoti
   return service;
 }
 
-void main() {
-  TestWidgetsFlutterBinding.ensureInitialized();
+// Helper para crear el widget de prueba con provider override
+Future<Widget> createTestWidget({
+  required PrehispanicEmotion initialEmotion,
+  required ValueChanged<PrehispanicEmotion> onChanged,
+  bool reduceMotion = false,
+}) async {
+  SharedPreferences.setMockInitialValues({});
+  final prefs = await SharedPreferences.getInstance();
+  final settingsService = AppSettingsService.createForTesting(prefs);
+  if (reduceMotion) {
+    await settingsService.setReduceMotion(true);
+  }
 
-  // Helper para crear el widget de prueba con provider override
-  Future<Widget> createTestWidget({
-    required PrehispanicEmotion initialEmotion,
-    required ValueChanged<PrehispanicEmotion> onChanged,
-    bool reduceMotion = false,
-  }) async {
-    SharedPreferences.setMockInitialValues({});
-    final prefs = await SharedPreferences.getInstance();
-    final settingsService = AppSettingsService.createForTesting(prefs);
-    if (reduceMotion) {
-      await settingsService.setReduceMotion(true);
-    }
-
-    return ProviderScope(
-      overrides: [
-        appSettingsServiceProvider.overrideWithValue(settingsService),
-      ],
-      child: MaterialApp(
-        theme: ThemeData(
-          textTheme: const TextTheme(
-            titleMedium: TextStyle(fontSize: 16),
-            labelLarge: TextStyle(fontSize: 14),
-            bodySmall: TextStyle(fontSize: 12),
-          ),
-        ),
-        home: Scaffold(
-          body: EmotionWeatherSelector(
-            selectedEmotion: initialEmotion,
-            onChanged: onChanged,
-          ),
+  return ProviderScope(
+    overrides: [
+      appSettingsServiceProvider.overrideWithValue(settingsService),
+    ],
+    child: MaterialApp(
+      theme: ThemeData(
+        textTheme: const TextTheme(
+          titleMedium: TextStyle(fontSize: 16),
+          labelLarge: TextStyle(fontSize: 14),
+          bodySmall: TextStyle(fontSize: 12),
         ),
       ),
+      home: Scaffold(
+        body: EmotionWeatherSelector(
+          selectedEmotion: initialEmotion,
+          onChanged: onChanged,
+        ),
+      ),
+    ),
+  );
+}
+
+// Helper para crear widget con EmotionGradientBackground + EmotionWeatherSelector
+Future<Widget> createFullTestWidget({
+  required PrehispanicEmotion initialEmotion,
+  required ValueChanged<PrehispanicEmotion> onChanged,
+  bool reduceMotion = false,
+}) async {
+  SharedPreferences.setMockInitialValues({});
+  final prefs = await SharedPreferences.getInstance();
+  final settingsService = AppSettingsService.createForTesting(prefs);
+  if (reduceMotion) {
+    await settingsService.setReduceMotion(true);
+  }
+
+  return ProviderScope(
+    overrides: [
+      appSettingsServiceProvider.overrideWithValue(settingsService),
+    ],
+    child: MaterialApp(
+      theme: ThemeData(
+        textTheme: const TextTheme(
+          titleMedium: TextStyle(fontSize: 16),
+          labelLarge: TextStyle(fontSize: 14),
+          bodySmall: TextStyle(fontSize: 12),
+        ),
+      ),
+      home: Scaffold(
+        body: Stack(
+          children: [
+            Positioned.fill(
+              child: EmotionGradientBackground(emotion: initialEmotion),
+            ),
+            SafeArea(
+              child: SingleChildScrollView(
+                child: EmotionWeatherSelector(
+                  selectedEmotion: initialEmotion,
+                  onChanged: onChanged,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
+}
+
+// Widget stateful para tests que necesitan cambiar la emoción del gradiente
+class _TestGradientBackground extends StatefulWidget {
+  const _TestGradientBackground();
+
+  @override
+  State<_TestGradientBackground> createState() => _TestGradientBackgroundState();
+}
+
+class _TestGradientBackgroundState extends State<_TestGradientBackground> {
+  PrehispanicEmotion _currentEmotion = PrehispanicEmotion.tlalocLluvia;
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        Positioned.fill(
+          child: EmotionGradientBackground(emotion: _currentEmotion),
+        ),
+        SafeArea(
+          child: Center(
+            child: ElevatedButton(
+              onPressed: () {
+                setState(() {
+                  _currentEmotion = PrehispanicEmotion.tonatiuhSol;
+                });
+              },
+              child: const Text('Cambiar a Sol'),
+            ),
+          ),
+        ),
+      ],
     );
   }
+}
+
+void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
 
   group('EmotionWeatherSelector', () {
     testWidgets('cada clima muestra su deidad y etiqueta emocional correcta', (tester) async {
@@ -122,76 +210,6 @@ void main() {
       await tester.pump();
 
       expect(capturedEmotion, equals(PrehispanicEmotion.metztliNoche));
-    });
-
-    testWidgets('el gradiente de fondo cambia al seleccionar otra emoción', (tester) async {
-      // Usar un widget stateful que actualice la emoción seleccionada
-      PrehispanicEmotion currentEmotion = PrehispanicEmotion.tlalocLluvia;
-
-      // Crear settings service con mock SharedPreferences
-      SharedPreferences.setMockInitialValues({});
-      final prefs = await SharedPreferences.getInstance();
-      final settingsService = AppSettingsService.createForTesting(prefs);
-
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            appSettingsServiceProvider.overrideWithValue(settingsService),
-          ],
-          child: MaterialApp(
-            theme: ThemeData(
-              textTheme: const TextTheme(
-                titleMedium: TextStyle(fontSize: 16),
-                labelLarge: TextStyle(fontSize: 14),
-                bodySmall: TextStyle(fontSize: 12),
-              ),
-            ),
-            home: Scaffold(
-              body: StatefulBuilder(
-                builder: (context, setState) {
-                  return EmotionWeatherSelector(
-                    selectedEmotion: currentEmotion,
-                    onChanged: (emotion) {
-                      setState(() {
-                        currentEmotion = emotion;
-                      });
-                    },
-                  );
-                },
-              ),
-            ),
-          ),
-        ),
-      );
-
-      // Obtener el AnimatedContainer y verificar su gradiente inicial
-      final animatedContainer = tester.widget<AnimatedContainer>(find.byType(AnimatedContainer));
-      expect(animatedContainer.decoration, isA<BoxDecoration>());
-      final initialDecoration = animatedContainer.decoration as BoxDecoration;
-      expect(initialDecoration.gradient, equals(AppColors.gradientTlalocLluvia));
-
-      // Cambiar selección a Sol de Tonatiuh
-      await tester.tap(find.text('Sol de Tonatiuh').first);
-      await tester.pumpAndSettle(); // Esperar la animación
-
-      final updatedContainer = tester.widget<AnimatedContainer>(find.byType(AnimatedContainer));
-      final updatedDecoration = updatedContainer.decoration as BoxDecoration;
-      expect(updatedDecoration.gradient, equals(AppColors.gradientTonatiuhSol));
-    });
-
-    testWidgets('con reducir movimiento la duración de la animación es cero', (tester) async {
-      // Crear widget con reduceMotion = true
-      await tester.pumpWidget(
-        await createTestWidget(
-          initialEmotion: PrehispanicEmotion.tlalocLluvia,
-          onChanged: (_) {},
-          reduceMotion: true,
-        ),
-      );
-
-      // El AnimatedContainer debe tener duration = Duration.zero
-      final animatedContainer = tester.widget<AnimatedContainer>(find.byType(AnimatedContainer));
-      expect(animatedContainer.duration, equals(Duration.zero));
     });
 
     testWidgets('el widget no se desborda con texto escalado al 200 %', (tester) async {
@@ -350,6 +368,115 @@ void main() {
 
       final animatedScale = tester.widget<AnimatedScale>(find.byType(AnimatedScale).first);
       expect(animatedScale.duration, equals(Duration.zero));
+    });
+
+    testWidgets('funciona dentro de SingleChildScrollView sin error de altura ilimitada', (tester) async {
+      // El selector ahora no tiene su propio SingleChildScrollView,
+      // así que debe poder usarse dentro de uno sin problemas
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            appSettingsServiceProvider.overrideWithValue(
+              AppSettingsService.createForTesting(
+                (await SharedPreferences.getInstance()),
+              ),
+            ),
+          ],
+          child: MaterialApp(
+            theme: ThemeData(
+              textTheme: const TextTheme(
+                titleMedium: TextStyle(fontSize: 16),
+                labelLarge: TextStyle(fontSize: 14),
+                bodySmall: TextStyle(fontSize: 12),
+              ),
+            ),
+            home: Scaffold(
+              body: SingleChildScrollView(
+                child: EmotionWeatherSelector(
+                  selectedEmotion: PrehispanicEmotion.tlalocLluvia,
+                  onChanged: (_) {},
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      expect(find.byType(EmotionWeatherSelector), findsOneWidget);
+      expect(find.text('Lluvia de Tláloc'), findsOneWidget);
+    });
+  });
+
+  group('EmotionGradientBackground', () {
+    testWidgets('el gradiente de fondo cambia al seleccionar otra emoción', (tester) async {
+      // Crear settings service con mock SharedPreferences
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      final settingsService = AppSettingsService.createForTesting(prefs);
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            appSettingsServiceProvider.overrideWithValue(settingsService),
+          ],
+          child: MaterialApp(
+            theme: ThemeData(
+              textTheme: const TextTheme(
+                titleMedium: TextStyle(fontSize: 16),
+                labelLarge: TextStyle(fontSize: 14),
+                bodySmall: TextStyle(fontSize: 12),
+              ),
+            ),
+            home: Scaffold(
+              body: _TestGradientBackground(),
+            ),
+          ),
+        ),
+      );
+
+      // Obtener el AnimatedContainer dentro de SafeAnimationWrapper y verificar su gradiente inicial
+      final animatedContainer = tester.widget<AnimatedContainer>(
+        find.descendant(
+          of: find.byType(SafeAnimationWrapper),
+          matching: find.byType(AnimatedContainer),
+        ),
+      );
+      expect(animatedContainer.decoration, isA<BoxDecoration>());
+      final initialDecoration = animatedContainer.decoration as BoxDecoration;
+      expect(initialDecoration.gradient, equals(AppColors.gradientTlalocLluvia));
+
+      // Cambiar selección a Sol de Tonatiuh
+      await tester.tap(find.text('Cambiar a Sol'));
+      await tester.pumpAndSettle(); // Esperar la animación
+
+      final updatedContainer = tester.widget<AnimatedContainer>(
+        find.descendant(
+          of: find.byType(SafeAnimationWrapper),
+          matching: find.byType(AnimatedContainer),
+        ),
+      );
+      final updatedDecoration = updatedContainer.decoration as BoxDecoration;
+      expect(updatedDecoration.gradient, equals(AppColors.gradientTonatiuhSol));
+    });
+
+    testWidgets('con reducir movimiento la duración de la animación es cero', (tester) async {
+      // Crear widget con reduceMotion = true
+      await tester.pumpWidget(
+        await createFullTestWidget(
+          initialEmotion: PrehispanicEmotion.tlalocLluvia,
+          onChanged: (_) {},
+          reduceMotion: true,
+        ),
+      );
+
+      // El AnimatedContainer dentro de SafeAnimationWrapper debe tener duration = Duration.zero
+      final animatedContainer = tester.widget<AnimatedContainer>(
+        find.descendant(
+          of: find.byType(SafeAnimationWrapper),
+          matching: find.byType(AnimatedContainer),
+        ),
+      );
+      expect(animatedContainer.duration, equals(Duration.zero));
     });
   });
 }

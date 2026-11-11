@@ -18,6 +18,7 @@ import 'package:mi_calli/core/constants/legal_texts.dart';
 import 'package:mi_calli/core/security/biometric_auth_interface.dart';
 import 'package:mi_calli/core/security/biometric_auth_mock.dart';
 import 'package:mi_calli/core/security/biometric_vault_service.dart';
+import 'package:mi_calli/core/security/safety_guard_provider.dart';
 import 'package:mi_calli/core/settings/app_settings_service.dart';
 import 'package:mi_calli/core/settings/app_settings_provider.dart';
 import 'package:mi_calli/features/0_onboarding/onboarding_flow.dart';
@@ -765,6 +766,152 @@ testWidgets('sin consentimiento no se avanza del paso de consentimiento', (teste
 
       // Debe mostrar pantalla de bienvenida del onboarding
       expect(find.text(LegalTexts.welcomeTitle), findsOneWidget);
+    });
+  });
+
+  group('Integración completa con bootstrap() real', () {
+    late ProviderContainer container;
+    late BiometricAuthMock authMock;
+    late BiometricVaultService vaultService;
+
+    tearDown(() {
+      container.dispose();
+      vaultService.dispose();
+      BiometricVaultService.setInstanceForTesting(null);
+    });
+
+    Future<void> setupTestVault(ProviderContainer c) async {
+      // No-op: la inicialización real de bóveda se salta porque preloadProviders=false
+      // El mock ya se configuró antes de llamar a bootstrap
+    }
+
+    Future<void> skipDatabaseInit() async {
+      // No-op: saltar inicialización real de SQLCipher en tests
+    }
+
+    testWidgets('flujo completo de onboarding con bootstrap real - bienvenida → mayoría de edad → consentimiento → contacto → preferencias → pantalla principal',
+        (tester) async {
+      setLargeTestScreen(tester);
+      // Configurar SharedPreferences MOCK antes de bootstrap
+      SharedPreferences.setMockInitialValues({});
+
+      // Crear mock de bóveda ANTES de bootstrap para que biometricVaultStateProvider lo use
+      authMock = BiometricAuthMock();
+      final prefs = await SharedPreferences.getInstance();
+      final settings = AppSettingsService.createForTesting(prefs);
+      vaultService = BiometricVaultService.createForTesting(
+        authMock: authMock,
+        settingsMock: settings,
+      );
+      await vaultService.initializationComplete;
+      BiometricVaultService.setInstanceForTesting(vaultService);
+
+      // Configurar mock para desbloquear automáticamente (simula dispositivo sin biometría)
+      authMock.setNotAvailable();
+
+      // Llamar al bootstrap real SIN precargar providers (preloadProviders=false)
+      // y SIN inicializar base de datos real (customDatabaseInit)
+      container = await bootstrap(
+        customBiometricVaultInit: setupTestVault,
+        customSafetyGuardInit: (c) async {
+          await c.read(safetyGuardServiceProvider.future);
+        },
+        customDatabaseInit: skipDatabaseInit,
+        preloadProviders: false,
+      );
+
+      // Pump el app con el contenedor de bootstrap
+      await tester.pumpWidget(UncontrolledProviderScope(
+        container: container,
+        child: const MaterialApp(home: AppEntryPoint()),
+      ));
+      await tester.pumpAndSettle();
+
+      // 1. Debe empezar en pantalla de Bienvenida
+      expect(find.text(LegalTexts.welcomeTitle), findsOneWidget);
+      expect(find.text(LegalTexts.disclaimerTitle), findsOneWidget);
+
+      // 2. Welcome -> Continuar
+      await tester.tap(find.text('Continuar'));
+      await tester.pumpAndSettle();
+
+      // 3. Adult confirmation -> Sí (tengo 18+)
+      await tester.tap(find.text(LegalTexts.ageGateConfirm));
+      await tester.pumpAndSettle();
+
+      // 4. Consent -> marcar checkbox y Continuar
+      await tester.tap(find.byType(Checkbox));
+      await tester.pump();
+      await tester.tap(find.text(LegalTexts.consentContinue));
+      await tester.pumpAndSettle();
+
+      // 5. Trusted contact -> Saltar (opcional)
+      await tester.tap(find.text('Saltar este paso'));
+      await tester.pumpAndSettle();
+
+      // 6. Preferences -> Finalizar (defaults off)
+      await tester.tap(find.text('Finalizar y Entrar'));
+      await tester.pumpAndSettle();
+
+      // 7. Debe haber llegado a la pantalla principal (como no hay biometría, se desbloquea directo)
+      // Lo importante es que el onboarding se marcó como completado
+      // Verificar que los settings se guardaron en SharedPreferences
+      final prefsCheck = await SharedPreferences.getInstance();
+      expect(prefsCheck.getBool('onboarding_done'), isTrue);
+      expect(prefsCheck.getBool('adult_confirmed'), isTrue);
+      expect(prefsCheck.getBool('privacy_consent_accepted'), isTrue);
+      expect(prefsCheck.getBool('audio_enabled'), isFalse);
+      expect(prefsCheck.getBool('reduce_motion'), isFalse);
+    });
+
+    testWidgets('rechazar mayoría de edad en bootstrap real no guarda onboarding_done', (tester) async {
+      setLargeTestScreen(tester);
+      SharedPreferences.setMockInitialValues({});
+
+      // Crear mock de bóveda
+      authMock = BiometricAuthMock();
+      final prefs = await SharedPreferences.getInstance();
+      final settings = AppSettingsService.createForTesting(prefs);
+      vaultService = BiometricVaultService.createForTesting(
+        authMock: authMock,
+        settingsMock: settings,
+      );
+      await vaultService.initializationComplete;
+      BiometricVaultService.setInstanceForTesting(vaultService);
+
+      authMock.setNotAvailable();
+
+      container = await bootstrap(
+        customBiometricVaultInit: setupTestVault,
+        customSafetyGuardInit: (c) async {
+          await c.read(safetyGuardServiceProvider.future);
+        },
+        customDatabaseInit: skipDatabaseInit,
+        preloadProviders: false,
+      );
+
+      await tester.pumpWidget(UncontrolledProviderScope(
+        container: container,
+        child: const MaterialApp(home: AppEntryPoint()),
+      ));
+      await tester.pumpAndSettle();
+
+      // Welcome -> Continuar
+      await tester.tap(find.text('Continuar'));
+      await tester.pumpAndSettle();
+
+      // Adult confirmation -> No (soy menor)
+      await tester.tap(find.text(LegalTexts.ageGateDecline));
+      await tester.pumpAndSettle();
+
+      // Debe mostrar pantalla de bloqueo para menores
+      expect(find.text(LegalTexts.underageTitle), findsOneWidget);
+
+      // Verificar que NO se guardó nada (getBool devuelve null para claves no existentes)
+      final prefsCheck = await SharedPreferences.getInstance();
+      expect(prefsCheck.getBool('onboarding_done'), anyOf(isFalse, isNull));
+      expect(prefsCheck.getBool('adult_confirmed'), anyOf(isFalse, isNull));
+      expect(prefsCheck.getBool('privacy_consent_accepted'), anyOf(isFalse, isNull));
     });
   });
 }

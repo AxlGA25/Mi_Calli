@@ -27,6 +27,19 @@ class _OnboardingPreferencesScreenState
   bool _audioEnabled = false;
   bool _reduceMotion = false;
 
+  Future<void> _completeOnboarding() async {
+    final contextRef = context; // Capture context before async gaps
+    try {
+      await ref.read(appSettingsProvider.notifier).setAudioEnabled(_audioEnabled);
+      await ref.read(appSettingsProvider.notifier).setReduceMotion(_reduceMotion);
+      // Marcar onboarding como completado
+      await ref.read(appSettingsProvider.notifier).setOnboardingDone(true);
+      if (contextRef.mounted) widget.onComplete();
+    } catch (_) {
+      if (contextRef.mounted) _showErrorSnackBar(contextRef);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -64,10 +77,10 @@ class _OnboardingPreferencesScreenState
                 'Preferencias Iniciales\n(opcional)',
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                  color: AppColors.obsidiana,
-                  fontWeight: FontWeight.bold,
-                  height: 1.2,
-                ),
+                      color: AppColors.obsidiana,
+                      fontWeight: FontWeight.bold,
+                      height: 1.2,
+                    ),
               ),
 
               const SizedBox(height: 16),
@@ -77,9 +90,9 @@ class _OnboardingPreferencesScreenState
                 'Puedes ajustar esto ahora o después\nen la pantalla de Ajustes.',
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: AppColors.obsidiana.withValues(alpha: 0.7),
-                  height: 1.5,
-                ),
+                      color: AppColors.obsidiana.withValues(alpha: 0.7),
+                      height: 1.5,
+                    ),
               ),
 
               const SizedBox(height: 40),
@@ -119,13 +132,7 @@ class _OnboardingPreferencesScreenState
 
               // Botón Finalizar
               FilledButton.icon(
-                onPressed: () async {
-                  await ref.read(appSettingsProvider.notifier).setAudioEnabled(_audioEnabled);
-                  await ref.read(appSettingsProvider.notifier).setReduceMotion(_reduceMotion);
-                  // Marcar onboarding como completado
-                  await ref.read(appSettingsProvider.notifier).setOnboardingDone(true);
-                  widget.onComplete();
-                },
+                onPressed: _completeOnboarding,
                 icon: const Icon(Icons.check_circle_outline),
                 label: const Text('Finalizar y Entrar'),
                 style: FilledButton.styleFrom(
@@ -143,6 +150,21 @@ class _OnboardingPreferencesScreenState
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  void _showErrorSnackBar(BuildContext context) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text(
+          'No pudimos guardar tu elección. Inténtalo de nuevo.',
+          style: TextStyle(color: Colors.white),
+        ),
+        backgroundColor: AppColors.rojoGrana.withValues(alpha: 0.9),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        margin: const EdgeInsets.all(16),
       ),
     );
   }
@@ -202,17 +224,17 @@ class _PreferenceTile extends StatelessWidget {
                   Text(
                     title,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color: AppColors.obsidiana,
-                      fontWeight: FontWeight.w600,
-                    ),
+                          color: AppColors.obsidiana,
+                          fontWeight: FontWeight.w600,
+                        ),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     subtitle,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: AppColors.obsidiana.withValues(alpha: 0.6),
-                      height: 1.4,
-                    ),
+                          color: AppColors.obsidiana.withValues(alpha: 0.6),
+                          height: 1.4,
+                        ),
                   ),
                 ],
               ),

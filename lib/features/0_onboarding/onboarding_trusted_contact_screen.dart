@@ -38,11 +38,16 @@ class _OnboardingTrustedContactScreenState
     super.dispose();
   }
 
-  void _saveAndContinue() {
-    if (_formKey.currentState!.validate()) {
-      ref.read(appSettingsProvider.notifier).setTrustedContactName(_nameController.text.trim());
-      ref.read(appSettingsProvider.notifier).setTrustedContactPhone(_phoneController.text.trim());
-      widget.onContinue();
+  Future<void> _saveAndContinue() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    final contextRef = context; // Capture context before async gaps
+    try {
+      await ref.read(appSettingsProvider.notifier).setTrustedContactName(_nameController.text.trim());
+      await ref.read(appSettingsProvider.notifier).setTrustedContactPhone(_phoneController.text.trim());
+      if (contextRef.mounted) widget.onContinue();
+    } catch (_) {
+      if (contextRef.mounted) _showErrorSnackBar(contextRef);
     }
   }
 
@@ -83,10 +88,10 @@ class _OnboardingTrustedContactScreenState
                 'Contacto de Confianza\n(opcional)',
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                  color: AppColors.obsidiana,
-                  fontWeight: FontWeight.bold,
-                  height: 1.2,
-                ),
+                      color: AppColors.obsidiana,
+                      fontWeight: FontWeight.bold,
+                      height: 1.2,
+                    ),
               ),
 
               const SizedBox(height: 16),
@@ -96,9 +101,9 @@ class _OnboardingTrustedContactScreenState
                 LegalTexts.contactExplain,
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: AppColors.obsidiana.withValues(alpha: 0.7),
-                  height: 1.5,
-                ),
+                      color: AppColors.obsidiana.withValues(alpha: 0.7),
+                      height: 1.5,
+                    ),
               ),
 
               const SizedBox(height: 32),
@@ -200,6 +205,21 @@ class _OnboardingTrustedContactScreenState
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  void _showErrorSnackBar(BuildContext context) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text(
+          'No pudimos guardar tu elección. Inténtalo de nuevo.',
+          style: TextStyle(color: Colors.white),
+        ),
+        backgroundColor: AppColors.rojoGrana.withValues(alpha: 0.9),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        margin: const EdgeInsets.all(16),
       ),
     );
   }

@@ -58,9 +58,9 @@ class OnboardingAdultConfirmationScreen extends ConsumerWidget {
                 LegalTexts.ageGateTitle,
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  color: AppColors.obsidiana,
-                  fontWeight: FontWeight.bold,
-                ),
+                      color: AppColors.obsidiana,
+                      fontWeight: FontWeight.bold,
+                    ),
               ),
 
               const SizedBox(height: 16),
@@ -77,9 +77,9 @@ class OnboardingAdultConfirmationScreen extends ConsumerWidget {
                   LegalTexts.ageGateBody,
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: AppColors.obsidiana.withValues(alpha: 0.8),
-                    height: 1.5,
-                  ),
+                        color: AppColors.obsidiana.withValues(alpha: 0.8),
+                        height: 1.5,
+                      ),
                 ),
               ),
 
@@ -90,10 +90,15 @@ class OnboardingAdultConfirmationScreen extends ConsumerWidget {
                 children: [
                   // Botón "Sí, tengo 18+" (usa ageGateConfirm)
                   FilledButton.icon(
-                    onPressed: () {
-                      // Guardar adult_confirmed = true
-                      ref.read(appSettingsProvider.notifier).setAdultConfirmed(true);
-                      onConfirmAdult();
+                    onPressed: () async {
+                      try {
+                        await ref.read(appSettingsProvider.notifier).setAdultConfirmed(true);
+                        if (context.mounted) onConfirmAdult();
+                      } catch (_) {
+                        if (context.mounted) {
+                          _showErrorSnackBar(context);
+                        }
+                      }
                     },
                     icon: const Icon(Icons.check_circle_outline, size: 22),
                     label: Text(LegalTexts.ageGateConfirm),
@@ -132,6 +137,21 @@ class OnboardingAdultConfirmationScreen extends ConsumerWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  void _showErrorSnackBar(BuildContext context) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text(
+          'No pudimos guardar tu elección. Inténtalo de nuevo.',
+          style: TextStyle(color: Colors.white),
+        ),
+        backgroundColor: AppColors.rojoGrana.withValues(alpha: 0.9),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        margin: const EdgeInsets.all(16),
       ),
     );
   }

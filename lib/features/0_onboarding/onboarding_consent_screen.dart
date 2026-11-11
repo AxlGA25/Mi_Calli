@@ -147,10 +147,12 @@ class _OnboardingConsentScreenState extends ConsumerState<OnboardingConsentScree
               FilledButton.icon(
                 onPressed: _accepted
                     ? () async {
-                        await ref
-                            .read(appSettingsProvider.notifier)
-                            .setPrivacyConsentAccepted(true);
-                        widget.onContinue();
+                        try {
+                          await ref.read(appSettingsProvider.notifier).setPrivacyConsentAccepted(true);
+                          if (context.mounted) widget.onContinue();
+                        } catch (_) {
+                          if (context.mounted) _showErrorSnackBar(context);
+                        }
                       }
                     : null,
                 icon: const Icon(Icons.check_circle_outline, size: 22),
@@ -236,6 +238,21 @@ class _OnboardingConsentScreenState extends ConsumerState<OnboardingConsentScree
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  void _showErrorSnackBar(BuildContext context) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text(
+          'No pudimos guardar tu elección. Inténtalo de nuevo.',
+          style: TextStyle(color: Colors.white),
+        ),
+        backgroundColor: AppColors.rojoGrana.withValues(alpha: 0.9),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        margin: const EdgeInsets.all(16),
       ),
     );
   }
