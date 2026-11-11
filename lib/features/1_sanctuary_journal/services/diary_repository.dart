@@ -146,4 +146,24 @@ class DiaryRepository {
       throw DiaryRepositoryException('Error inesperado al contar totales: $e');
     }
   }
+
+  /// Obtiene TODAS las entradas ordenadas por created_at descendente (más recientes primero).
+  ///
+  /// Devuelve la lista completa de entradas para la pantalla de historial provisional.
+  /// Orden: más reciente primero (DESC).
+  Future<List<DiaryEntry>> getAllEntries() async {
+    try {
+      final db = _databaseService.database;
+      final rows = await db.query(
+        'diary_entries',
+        orderBy: 'created_at DESC',
+      );
+
+      return rows.map(DiaryEntry.fromDatabaseMap).toList();
+    } on sql.DatabaseException catch (e) {
+      throw DiaryRepositoryException('Error al obtener todas las entradas: $e');
+    } catch (e) {
+      throw DiaryRepositoryException('Error inesperado al obtener entradas: $e');
+    }
+  }
 }

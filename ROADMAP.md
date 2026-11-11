@@ -35,7 +35,7 @@
   *Listo cuando:* al elegir un clima cambia el gradiente y cada clima muestra su emoción correcta.
 - [x] **2.4.** `SanctuaryJournalScreen`: pergamino de escritura, botón "Necesito apoyo", `TickerMode` con teclado abierto, filtro SOS antes del cierre (sin bloquear el guardado, marcando `triggered_sos`) y diálogo de la Pluma de Sabiduría.
   *Listo cuando:* se puede escribir, entregar la ofrenda, ver la pluma, y la entrada queda guardada incluso si el SOS aparece.
-- [ ] **2.5.** `DiaryHistoryScreen` **provisional** (lista de entradas con fecha, clima y pluma). Se elimina al terminar el Códice Privado (4.4).
+- [x] **2.5.** `DiaryHistoryScreen` **provisional** (lista de entradas con fecha, clima y pluma). Se elimina al terminar el Códice Privado (4.4).
   *Listo cuando:* muestra las entradas en orden inverso.
 - 🏁 **Punto de control 1:** el diario funciona de principio a fin. Reviso contigo antes de seguir.
 

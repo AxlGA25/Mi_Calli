@@ -39,4 +39,15 @@ class SanctuaryTexts {
   // Semántica para el botón de entregar ofrenda
   static const String semanticaEntregarOfrenda =
       'Guardar tu entrada del diario y recibir tu Pluma de Sabiduría';
+
+  // Texto del botón "Mis entradas" en SanctuaryJournalScreen
+  static const String botonMisEntradas = 'Mis entradas';
+
+  // Semántica para el botón "Mis entradas"
+  static const String semanticaMisEntradas =
+      'Abrir historial de entradas del diario';
+
+  // Estado vacío en DiaryHistoryScreen (provisional)
+  static const String historialVacioMensaje =
+      'Aún no has entregado ninguna ofrenda. Tus palabras aparecerán aquí cuando escribas.';
 }

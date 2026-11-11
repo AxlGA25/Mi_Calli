@@ -151,6 +151,19 @@ class AssetLoaderService {
     ]);
   }
 
+  /// Obtiene una pluma por su emotionId.
+  ///
+  /// Debe llamarse después de loadFeathers() o preloadAll().
+  /// Lanza [AssetLoadException] si no se encuentra la pluma para la emoción.
+  Future<WisdomFeather> getFeatherByEmotion(String emotionId) async {
+    final feathers = await loadFeathers();
+    try {
+      return feathers.firstWhere((f) => f.emotionId == emotionId);
+    } on StateError {
+      throw AssetLoadException('No se encontró pluma para emotionId: $emotionId');
+    }
+  }
+
   /// Limpia la caché (útil para tests).
   void clearCache() {
     _cachedFeathers = null;

@@ -25,16 +25,18 @@ import 'package:mi_calli/features/1_sanctuary_journal/data/diary_repository_prov
 import 'package:mi_calli/features/1_sanctuary_journal/models/diary_entry.dart';
 import 'package:mi_calli/features/1_sanctuary_journal/models/prehispanic_emotion.dart';
 import 'package:mi_calli/features/1_sanctuary_journal/models/wisdom_feather.dart';
+import 'package:mi_calli/features/1_sanctuary_journal/presentation/diary_history_screen.dart';
 import 'package:mi_calli/features/1_sanctuary_journal/presentation/emotion_gradient_background.dart';
 import 'package:mi_calli/features/1_sanctuary_journal/presentation/emotion_weather_selector.dart';
 
 // Constantes de color/superficie para tests de contraste (WCAG 4.5:1).
 // Deben coincidir exactamente con los valores usados en la implementación.
+//
+// NOTA: Los fondos de etiquetas de clima (selected/unselected) se definen en
+// EmotionWeatherSelectorContrastConstants para evitar duplicidad.
 class SanctuaryJournalContrastConstants {
   // Fondos translúcidos detrás de los textos
   static const Color phraseBgColor = Color.fromRGBO(255, 255, 255, 0.85);
-  static const Color climateSelectedBgColor = Color.fromRGBO(255, 255, 255, 0.95);
-  static const Color climateUnselectedBgColor = Color.fromRGBO(255, 255, 255, 0.85);
 
   // Fondos de botones
   static const Color entregarOfrendaBgColor = AppColors.obsidiana;
@@ -49,6 +51,10 @@ class SanctuaryJournalContrastConstants {
   static const Color featherDialogTextColor = AppColors.obsidiana;
   static const Color featherDialogButtonBgColor = AppColors.obsidiana;
   static const Color featherDialogButtonTextColor = Colors.white;
+
+  // Botón "Mis entradas" (esquina superior derecha)
+  static const Color misEntradasBgColor = Color.fromRGBO(255, 255, 255, 0.9);
+  static const Color misEntradasTextColor = AppColors.obsidiana;
 
   SanctuaryJournalContrastConstants._();
 }
@@ -303,6 +309,16 @@ class _SanctuaryJournalScreenState extends ConsumerState<SanctuaryJournalScreen>
     SupportNetworkModal.show(context);
   }
 
+  /// Navega a la pantalla provisional de historial de entradas.
+  void _onMisEntradas() {
+    if (!mounted) return;
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => const DiaryHistoryScreen(),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     // EmotionGradientBackground maneja reduceMotion internamente
@@ -331,6 +347,13 @@ class _SanctuaryJournalScreenState extends ConsumerState<SanctuaryJournalScreen>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
+                    // Botón discreto "Mis entradas" (esquina superior derecha)
+                    Align(
+                      alignment: Alignment.topRight,
+                      child: _buildMisEntradasButton(),
+                    ),
+                    const SizedBox(height: 8),
+
                     // Texto de invitación cálido
                     _buildInvitationText(),
 
@@ -535,6 +558,40 @@ class _SanctuaryJournalScreenState extends ConsumerState<SanctuaryJournalScreen>
           minimumSize: const Size(double.infinity, 56),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           backgroundColor: SanctuaryJournalContrastConstants.necesitoApoyoBgColor,
+        ),
+      ),
+    );
+  }
+
+  /// Botón discreto "Mis entradas" (esquina superior derecha).
+  ///
+  /// Usa texto oscuro (obsidiana) sobre fondo blanco translúcido para contraste
+  /// WCAG >= 4.5:1. Área táctil >= 48x48 px.
+  Widget _buildMisEntradasButton() {
+    return Semantics(
+      label: SanctuaryTexts.semanticaMisEntradas,
+      button: true,
+      child: Material(
+        color: SanctuaryJournalContrastConstants.misEntradasBgColor,
+        borderRadius: BorderRadius.circular(12),
+        child: InkWell(
+          onTap: _onMisEntradas,
+          borderRadius: BorderRadius.circular(12),
+          // Área táctil mínima 48x48
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              child: Text(
+                SanctuaryTexts.botonMisEntradas,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: SanctuaryJournalContrastConstants.misEntradasTextColor,
+                ),
+              ),
+            ),
+          ),
         ),
       ),
     );

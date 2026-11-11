@@ -152,6 +152,11 @@ class _MockDiaryRepositoryProvider implements DiaryRepository {
   Future<int> getTotalEntriesCount() async {
     return 0;
   }
+
+  @override
+  Future<List<DiaryEntry>> getAllEntries() async {
+    return mockRepository.savedEntries.reversed.toList();
+  }
 }
 
 /// Verifica si un widget o sus descendientes contienen un Text con el texto dado.

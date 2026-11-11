@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 import 'core/constants/app_colors.dart';
 import 'core/database/local_database_service.dart';
@@ -57,6 +58,9 @@ Future<ProviderContainer> bootstrap({
   bool preloadProviders = true,
 }) async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Inicializar datos de locale para formateo de fechas (es_MX)
+  await initializeDateFormatting('es_MX', null);
 
   // 1. Inicializar SharedPreferences
   final prefs = await SharedPreferences.getInstance();
