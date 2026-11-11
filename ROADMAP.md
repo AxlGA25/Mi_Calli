@@ -40,7 +40,7 @@
 - 🏁 **Punto de control 1:** el diario funciona de principio a fin. Reviso contigo antes de seguir.
 
 ## Fase 3: Etapa 2 - Gamificación, Fuego Sagrado, Chinampa y Tonalpohualli
-- [ ] **3.1.** Implementar `SacredFireAndEvolutionService`: 5 niveles de Quetzalcóatl, racha con colores (Naranja, Dorado, Turquesa) y *Manto de Xólotl* con escudos que empiezan en 1, suben $+1$ por cada 7 días de racha y tienen máximo 2, usando la fecha local `YYYY-MM-DD`.
+- [x] **3.1.** Implementar `SacredFireAndEvolutionService`: 5 niveles de Quetzalcóatl, racha con colores (Naranja, Dorado, Turquesa) y *Manto de Xólotl* con escudos que empiezan en 1, suben $+1$ por cada 7 días de racha y tienen máximo 2, usando la fecha local `YYYY-MM-DD`.
   *Listo cuando:* pruebas cubren racha continua, 1 día perdido con y sin escudo, reinicio compasivo, recarga de escudo y tope de 2.
 - [ ] **3.2.** Implementar `ChinampaController`: plantar en 4 slots y regar al guardar una entrada ($+1$, o $+2$ por emoción de afinidad), con `waterings_needed` tomado del catálogo.
   *Listo cuando:* pruebas cubren riego normal, riego doble y floración.

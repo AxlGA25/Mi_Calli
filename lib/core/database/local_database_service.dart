@@ -39,10 +39,12 @@ class LocalDatabaseService {
   LocalDatabaseService._({
     required this.secureStorage,
     String? databasePath,
+    this.databaseFactory,
   }) : _databasePath = databasePath;
 
   final SecureStorageInterface secureStorage;
   final String? _databasePath;
+  final DatabaseFactory? databaseFactory;
 
   Database? _database;
   bool _isInitialized = false;
@@ -70,13 +72,16 @@ class LocalDatabaseService {
   }
 
   /// Crea una instancia para tests con almacenamiento mockeado.
+  /// Opcionalmente acepta un [databaseFactory] para usar sqflite_common_ffi en tests de escritorio.
   static LocalDatabaseService createForTesting({
     required SecureStorageMock secureStorage,
     String? databasePath,
+    DatabaseFactory? databaseFactory,
   }) {
     return LocalDatabaseService._(
       secureStorage: secureStorage,
       databasePath: databasePath,
+      databaseFactory: databaseFactory,
     );
   }
 
@@ -122,7 +127,25 @@ class LocalDatabaseService {
   Future<Database> _openDatabase(String keyBase64) async {
     final dbPath = _databasePath ?? await _getDefaultDbPath();
 
-    // sqflite_sqlcipher espera el password como String (clave en hex o base64)
+    // Si se inyecta un databaseFactory (para tests con FFI), úsalo.
+    // En producción usa sqflite_sqlcipher.openDatabase (importado como openDatabase).
+    final factory = databaseFactory;
+    if (factory != null) {
+      // Para FFI, usar openDatabase del factory (sin password para SQLite plano en tests)
+      // Nota: en tests usamos SQLite sin cifrado para simplicidad
+      return factory.openDatabase(
+        dbPath,
+        options: OpenDatabaseOptions(
+          version: 1,
+          onOpen: (db) {
+            // Configurar pragmas para tests
+            db.execute('PRAGMA foreign_keys = ON');
+          },
+        ),
+      );
+    }
+
+    // Producción: sqflite_sqlcipher con cifrado
     return openDatabase(
       dbPath,
       version: 1,
