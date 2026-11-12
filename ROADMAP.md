@@ -46,7 +46,7 @@
   *Listo cuando:* pruebas cubren riego normal, riego doble y floración.
 - [x] **3.3.** Implementar visitas y reliquias de Tláloc, Xochiquétzal y Xólotl (condiciones de la Etapa 2, guardadas en `user_inventory`).
   *Listo cuando:* pruebas muestran que cada condición desbloquea su reliquia una sola vez.
-- [ ] **3.4.** Crear `TonalpohualliGenerator` y `TonalpohualliScrollDialog` (astro regente de los últimos 7 días y plantillas modulares) con la regla de disponibilidad de `CONTEXT.md` punto 11.
+- [x] **3.4.** Crear `TonalpohualliGenerator` y `TonalpohualliScrollDialog` (astro regente de los últimos 7 días y plantillas modulares) con la regla de disponibilidad de `CONTEXT.md` punto 11.
   *Listo cuando:* pruebas cubren: se habilita en domingo o a los 7 días de la última lectura, sigue disponible hasta abrirse, no se ofrece sin entradas en la semana, y una semana con datos de ejemplo produce una lectura coherente.
 
 ## Fase 4: Etapa 3 - Paisaje, Códice Biométrico, Altar de Calma, Ajustes y Accesibilidad

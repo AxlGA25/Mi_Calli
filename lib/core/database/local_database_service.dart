@@ -304,7 +304,9 @@ class LocalDatabaseService {
     String? wateredSeedId,
     bool triggeredSos = false,
   }) async {
-    final createdAtMillis = LocalDayBounds.truncateToMillis(createdAt);
+    // Convertir a UTC antes de truncar para almacenar en UTC
+    final createdAtUtc = createdAt.toUtc();
+    final createdAtMillis = LocalDayBounds.truncateToMillis(createdAtUtc);
     return _database!.insert('diary_entries', {
       'id': id,
       'created_at': createdAtMillis.toIso8601String(),
