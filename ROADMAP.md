@@ -54,7 +54,7 @@
   *Listo cuando:* alternar el silencio funciona y no suena nada con la app en segundo plano.
 - [x] **4.2.** Construir `TeotihuacanValleyScreen` solo con el ciclo Día/Noche (4 gradientes) y las capas del `Stack`, sin zonas táctiles todavía.
   *Listo cuando:* el cielo cambia según la hora del dispositivo.
-- [ ] **4.3.** Agregar las zonas táctiles (Quetzalcóatl, Chinampa, Brasero, Templo del Códice) y el HUD de tres botones (audio, Ajustes, Caracol SOS), con `Semantics` en cada uno. Los destinos que aún no existan pueden ser pantallas vacías.
+- [x] **4.3.** Agregar las zonas táctiles (Quetzalcóatl, Chinampa, Brasero, Templo del Códice) y el HUD de tres botones (audio, Ajustes, Caracol SOS), con `Semantics` en cada uno. Los destinos que aún no existan pueden ser pantallas vacías.
   *Listo cuando:* cada zona navega a su destino, tiene área de toque de al menos $48 \times 48$ px y etiqueta para lectores de pantalla.
 - [ ] **4.4.** Construir `PrivateCodexScreen` con `local_auth` y la cuadrícula de Calendario Agrícola (detalle en pergamino). Al terminar, elimina el `DiaryHistoryScreen` provisional de la Fase 2.
   *Listo cuando:* sin autenticación no se ve el contenido, y con ella se abre un día con entrada.

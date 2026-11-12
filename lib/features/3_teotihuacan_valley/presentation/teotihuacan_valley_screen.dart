@@ -1,7 +1,7 @@
-// Pantalla principal del Valle de Teotihuacán (Tarea 4.2).
+// Pantalla principal del Valle de Teotihuacán (Tarea 4.3).
 //
-// Stack que compone las 4 capas visuales del Valle con el ciclo día/noche.
-// Sin zonas táctiles ni HUD (se agregarán en Tarea 4.3).
+// Stack que compone las 5 capas visuales del Valle con el ciclo día/noche.
+// Incluye HUD superior (Layer 4) y 5 zonas táctiles accesibles en Layer 3.
 // Acepta currentTimeOverride y emotionOverride para testing y control externo.
 
 import 'package:flutter/material.dart';
@@ -12,11 +12,18 @@ import 'package:mi_calli/core/audio/ambient_audio_models.dart';
 import 'package:mi_calli/core/audio/ambient_audio_service.dart';
 import 'package:mi_calli/core/performance/safe_animation_wrapper.dart';
 import 'package:mi_calli/features/1_sanctuary_journal/models/prehispanic_emotion.dart';
+import 'package:mi_calli/features/1_sanctuary_journal/presentation/sanctuary_journal_screen.dart';
+import 'package:mi_calli/features/1_sanctuary_journal/presentation/diary_history_screen.dart';
 import 'package:mi_calli/features/2_gamification/models/deity_relic_models.dart';
 import 'package:mi_calli/features/2_gamification/providers/relics_provider.dart';
+import 'package:mi_calli/features/2_gamification/services/tonalpohualli_generator.dart';
+import 'package:mi_calli/features/2_gamification/presentation/tonalpohualli_scroll_dialog.dart';
+import 'package:mi_calli/features/3_teotihuacan_valley/presentation/widgets/chinampa_bottom_sheet.dart';
+import 'package:mi_calli/features/3_teotihuacan_valley/presentation/widgets/sacred_fire_status_dialog.dart';
 import 'package:mi_calli/features/3_teotihuacan_valley/presentation/widgets/valley_pyramids_background_layer.dart';
 import 'package:mi_calli/features/3_teotihuacan_valley/presentation/widgets/valley_scenic_elements_layer.dart';
 import 'package:mi_calli/features/3_teotihuacan_valley/presentation/widgets/valley_sky_gradient_layer.dart';
+import 'package:mi_calli/features/3_teotihuacan_valley/presentation/widgets/valley_top_hud_layer.dart';
 import 'package:mi_calli/features/3_teotihuacan_valley/presentation/widgets/valley_weather_particles_layer.dart';
 
 /// Clave global para la pantalla completa (tests de integración).
@@ -28,16 +35,19 @@ final GlobalKey teotihuacanValleyScreenKey = GlobalKey(debugLabel: 'teotihuacanV
 /// 1. ValleySkyGradientLayer - Cielo con gradiente, astro, clima emocional
 /// 2. ValleyPyramidsBackgroundLayer - Pirámides del Sol, Luna y Templo de los Códices
 /// 3. ValleyWeatherParticlesLayer - Partículas de clima (lluvia, viento, tormenta, estrellas, luciérnagas)
-/// 4. ValleyScenicElementsLayer - Elementos protagonistas (Altar Quetzalcóatl, Xólotl, Fuego Sagrado, Chinampa, Vasija Tláloc)
+/// 4. ValleyScenicElementsLayer - Elementos protagonistas + 5 zonas táctiles accesibles
+/// 5. ValleyTopHudLayer - HUD superior con 3 botones (Audio, Ajustes, Caracol SOS)
 ///
 /// Parámetros opcionales para control externo y testing:
 /// - [currentTimeOverride]: Si se proporciona, fuerza la fase horaria calculando desde esta hora local.
 /// - [emotionOverride]: Si se proporciona, fuerza el clima emocional (sobreescribe el provider).
+/// - [forceVenusAvailable]: Si true, fuerza la disponibilidad de la Constelación de Venus (testing).
 class TeotihuacanValleyScreen extends ConsumerWidget {
   const TeotihuacanValleyScreen({
     super.key,
     this.currentTimeOverride,
     this.emotionOverride,
+    this.forceVenusAvailable = false,
   });
 
   /// Hora actual forzada para calcular la fase horaria (para testing/demo).
@@ -47,6 +57,9 @@ class TeotihuacanValleyScreen extends ConsumerWidget {
   /// Clima emocional forzado (para testing/demo o escritura en diario).
   /// Si es null, usa el provider reactivo.
   final PrehispanicEmotion? emotionOverride;
+
+  /// Si true, fuerza la disponibilidad de la Constelación de Venus (para testing).
+  final bool forceVenusAvailable;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -63,6 +76,11 @@ class TeotihuacanValleyScreen extends ConsumerWidget {
     );
     final hasXolotlRelic = ref.watch(userRelicsProvider).maybeWhen(
       data: (relics) => relics.any((r) => r.deity == DeityId.xolotl),
+      orElse: () => false,
+    );
+    // Disponibilidad de la lectura del Tonalpohualli (Constelación de Venus)
+    final isVenusAvailable = ref.watch(isTonalpohualliAvailableProvider).maybeWhen(
+      data: (available) => available,
       orElse: () => false,
     );
 
@@ -96,6 +114,8 @@ class TeotihuacanValleyScreen extends ConsumerWidget {
               hasXochiquetzalRelic: hasXochiquetzalRelic,
               hasXolotlRelic: hasXolotlRelic,
               showXolotl: showXolotl,
+              isVenusAvailable: isVenusAvailable,
+              forceVenusAvailable: forceVenusAvailable,
               orientation: orientation,
             ),
           ),
@@ -105,8 +125,8 @@ class TeotihuacanValleyScreen extends ConsumerWidget {
   }
 }
 
-/// Stack principal con las 4 capas visuales.
-class _ValleyStack extends StatelessWidget {
+/// Stack principal con las 5 capas visuales.
+class _ValleyStack extends ConsumerWidget {
   const _ValleyStack({
     required this.timePhase,
     required this.emotionOverride,
@@ -114,6 +134,8 @@ class _ValleyStack extends StatelessWidget {
     required this.hasXochiquetzalRelic,
     required this.hasXolotlRelic,
     required this.showXolotl,
+    required this.isVenusAvailable,
+    required this.forceVenusAvailable,
     required this.orientation,
   });
 
@@ -123,10 +145,55 @@ class _ValleyStack extends StatelessWidget {
   final bool hasXochiquetzalRelic;
   final bool hasXolotlRelic;
   final bool showXolotl;
+  final bool isVenusAvailable;
+  final bool forceVenusAvailable;
   final Orientation orientation;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Callbacks para las 5 zonas táctiles
+    void openSanctuaryJournal() {
+      Navigator.of(context).push(
+        MaterialPageRoute<void>(
+          builder: (_) => const SanctuaryJournalScreen(),
+        ),
+      );
+    }
+
+    void openChinampa() {
+      ChinampaBottomSheet.show(context);
+    }
+
+    void openSacredFire() {
+      SacredFireStatusDialog.show(context);
+    }
+
+    void openCodex() {
+      Navigator.of(context).push(
+        MaterialPageRoute<void>(
+          builder: (_) => const DiaryHistoryScreen(),
+        ),
+      );
+    }
+
+    Future<void> openVenusReading() async {
+      final generator = ref.read(tonalpohualliGeneratorProvider);
+      final reading = await generator.generateWeeklyReading(markAsOpened: true);
+      if (reading != null && context.mounted) {
+        // Invalidar provider de disponibilidad para que se actualice
+        ref.invalidate(isTonalpohualliAvailableProvider);
+        // Mostrar diálogo usando el método estático
+        await TonalpohualliScrollDialog.show(context, reading: reading);
+      } else if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('No hay entradas suficientes para la lectura astral esta semana'),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    }
+
     return Stack(
       fit: StackFit.expand,
       children: [
@@ -165,7 +232,7 @@ class _ValleyStack extends StatelessWidget {
           ),
         ),
 
-        // Layer 3: Elementos escénicos protagonistas (con RepaintBoundary)
+        // Layer 3: Elementos escénicos protagonistas + 5 zonas táctiles (con RepaintBoundary)
         RepaintBoundary(
           key: valleyScenicElementsLayerKey,
           child: ValleyScenicElementsLayer(
@@ -175,7 +242,22 @@ class _ValleyStack extends StatelessWidget {
             hasXolotlRelic: hasXolotlRelic,
             showXolotl: showXolotl,
             hasTlalocRelic: hasTlalocRelic,
+            onOpenSanctuaryJournal: openSanctuaryJournal,
+            onOpenChinampa: openChinampa,
+            onOpenSacredFire: openSacredFire,
+            onOpenCodex: openCodex,
+            onOpenVenusReading: openVenusReading,
+            forceVenusAvailable: forceVenusAvailable,
           ),
+        ),
+
+        // Layer 4: HUD Superior con 3 botones flotantes
+        ValleyTopHudLayer(
+          onOpenSettings: () {
+            // El HUD maneja su propio modal provisional de ajustes
+          },
+          onOpenSanctuaryJournal: openSanctuaryJournal,
+          onOpenCodex: openCodex,
         ),
 
         // Indicador de reducción de movimiento (accesibilidad)

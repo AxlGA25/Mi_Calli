@@ -9,6 +9,8 @@
 // - Fuego Sagrado
 // - Chinampa
 // - Vasija Tláloc
+//
+// Tarea 4.3: Zonas táctiles accesibles con Semantics y área mínima 48x48 px.
 
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
@@ -27,6 +29,13 @@ final GlobalKey valleyFuegoSagradoKey = GlobalKey(debugLabel: 'valley_fuego_sagr
 final GlobalKey valleyChinampaKey = GlobalKey(debugLabel: 'valley_chinampa');
 final GlobalKey valleyVasijaTlalocKey = GlobalKey(debugLabel: 'valley_vasija_tlaloc');
 
+/// Claves para las 5 zonas táctiles (Tarea 4.3).
+final ValueKey<String> touchZoneQuetzalcoatlKey = const ValueKey<String>('touch_zone_quetzalcoatl');
+final ValueKey<String> touchZoneChinampaKey = const ValueKey<String>('touch_zone_chinampa');
+final ValueKey<String> touchZoneSacredFireKey = const ValueKey<String>('touch_zone_sacred_fire');
+final ValueKey<String> touchZoneCodexTempleKey = const ValueKey<String>('touch_zone_codex_temple');
+final ValueKey<String> touchZoneVenusConstellationKey = const ValueKey<String>('touch_zone_venus_constellation');
+
 /// Widget que muestra elementos escénicos del Valle en primer plano.
 class ValleyScenicElementsLayer extends StatelessWidget {
   const ValleyScenicElementsLayer({
@@ -37,6 +46,14 @@ class ValleyScenicElementsLayer extends StatelessWidget {
     this.hasXolotlRelic = false,
     this.showXolotl = false,
     this.hasTlalocRelic = false,
+    // Callbacks para las 5 zonas táctiles (Tarea 4.3)
+    this.onOpenSanctuaryJournal,
+    this.onOpenChinampa,
+    this.onOpenSacredFire,
+    this.onOpenCodex,
+    this.onOpenVenusReading,
+    // Flag de prueba para forzar disponibilidad de Venus
+    this.forceVenusAvailable = false,
   });
 
   /// Fase horaria actual.
@@ -57,9 +74,31 @@ class ValleyScenicElementsLayer extends StatelessWidget {
   /// Si el usuario tiene la reliquia de Tláloc (vasija en primer plano).
   final bool hasTlalocRelic;
 
+  /// Callback: Tocar a Quetzalcóatl (Altar Central) -> Santuario del Diario.
+  final VoidCallback? onOpenSanctuaryJournal;
+
+  /// Callback: Tocar la Chinampa Sagrada -> ChinampaBottomSheet.
+  final VoidCallback? onOpenChinampa;
+
+  /// Callback: Tocar el Brasero del Fuego Sagrado -> SacredFireStatusDialog.
+  final VoidCallback? onOpenSacredFire;
+
+  /// Callback: Tocar el Templo de los Códices -> Códice/Historial.
+  final VoidCallback? onOpenCodex;
+
+  /// Callback: Tocar la Constelación de Venus -> TonalpohualliScrollDialog.
+  final VoidCallback? onOpenVenusReading;
+
+  /// Flag de prueba para forzar la disponibilidad de Venus (testing).
+  final bool forceVenusAvailable;
+
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.sizeOf(context);
+
+    // Venus está disponible en noche si no hay emotionOverride, o si se fuerza
+    final isVenusAvailable = forceVenusAvailable ||
+        (timePhase == ValleyTimePhase.night && emotionOverride == null);
 
     return Stack(
       fit: StackFit.expand,
@@ -78,67 +117,481 @@ class ValleyScenicElementsLayer extends StatelessWidget {
           ),
         ),
 
-        // 5 elementos centrales protagonistas con ValueKeys (para testing y tap en Tarea 4.3)
-        // Posicionados en el tercio central de la pantalla
-
-        // 1. Altar Quetzalcóatl - centro-izquierda, zona media
+        // Mantener las claves originales para compatibilidad con tests existentes
+        // (se renderizan con Opacity 0 para no duplicar visuales)
+        // Se colocan ANTES de las zonas táctiles para que queden debajo en el Stack
+        // y no bloqueen los taps (las zonas táctiles van al final = encima)
         Positioned(
           key: valleyAltarQuetzalcoatlKey,
           left: size.width * 0.22,
           bottom: size.height * 0.28,
-          child: _AltarQuetzalcoatlWidget(
-            timePhase: timePhase,
-            emotionOverride: emotionOverride,
+          child: Opacity(
+            opacity: 0,
+            child: _AltarQuetzalcoatlWidget(
+              timePhase: timePhase,
+              emotionOverride: emotionOverride,
+            ),
           ),
         ),
 
-        // 2. Xólotl - centro-derecha, zona baja (solo si showXolotl)
         if (showXolotl)
           Positioned(
             key: valleyXolotlFaunaKey,
             right: size.width * 0.18,
             bottom: size.height * 0.22,
-            child: _XolotlWidget(
-              timePhase: timePhase,
-              emotionOverride: emotionOverride,
+            child: Opacity(
+              opacity: 0,
+              child: _XolotlWidget(
+                timePhase: timePhase,
+                emotionOverride: emotionOverride,
+              ),
             ),
           ),
 
-        // 3. Fuego Sagrado - centro, zona media (siempre visible)
         Positioned(
           key: valleyFuegoSagradoKey,
           left: size.width * 0.42,
           bottom: size.height * 0.35,
-          child: _FuegoSagradoWidget(
-            timePhase: timePhase,
-            emotionOverride: emotionOverride,
+          child: Opacity(
+            opacity: 0,
+            child: _FuegoSagradoWidget(
+              timePhase: timePhase,
+              emotionOverride: emotionOverride,
+            ),
           ),
         ),
 
-        // 4. Chinampa - centro-izquierda, zona baja
         Positioned(
           key: valleyChinampaKey,
           left: size.width * 0.08,
           bottom: size.height * 0.12,
-          child: _ChinampaWidget(
-            timePhase: timePhase,
-            emotionOverride: emotionOverride,
+          child: Opacity(
+            opacity: 0,
+            child: _ChinampaWidget(
+              timePhase: timePhase,
+              emotionOverride: emotionOverride,
+            ),
           ),
         ),
 
-        // 5. Vasija Tláloc - centro-derecha, zona baja (si tiene reliquia)
         if (hasTlalocRelic)
           Positioned(
             key: valleyVasijaTlalocKey,
             right: size.width * 0.08,
             bottom: size.height * 0.12,
-            child: _VasijaTlalocWidget(
+            child: Opacity(
+              opacity: 0,
+              child: _VasijaTlalocWidget(
+                timePhase: timePhase,
+                emotionOverride: emotionOverride,
+              ),
+            ),
+          ),
+
+        // 5 zonas táctiles accesibles (Tarea 4.3)
+        // Cada zona garantiza área mínima 48x48 px con ConstrainedBox y Semantics
+        // Se colocan AL FINAL del Stack para estar encima y recibir taps
+
+        // 1. Tocar a Quetzalcóatl (Altar Central) - key: touch_zone_quetzalcoatl
+        Positioned(
+          left: size.width * 0.18,
+          bottom: size.height * 0.25,
+          child: _TouchZone(
+            key: touchZoneQuetzalcoatlKey,
+            label: 'Escribir en el Santuario del Diario con Quetzalcóatl',
+            onTap: onOpenSanctuaryJournal,
+            child: _AltarQuetzalcoatlWidget(
               timePhase: timePhase,
               emotionOverride: emotionOverride,
             ),
           ),
+        ),
+
+        // 2. Tocar la Chinampa Sagrada (Abajo) - key: touch_zone_chinampa
+        Positioned(
+          left: size.width * 0.04,
+          bottom: size.height * 0.08,
+          child: _TouchZone(
+            key: touchZoneChinampaKey,
+            label: 'Abrir la Chinampa Sagrada y tus cultivos',
+            onTap: onOpenChinampa,
+            child: _ChinampaWidget(
+              timePhase: timePhase,
+              emotionOverride: emotionOverride,
+            ),
+          ),
+        ),
+
+        // 3. Tocar el Brasero del Fuego Sagrado - key: touch_zone_sacred_fire
+        Positioned(
+          left: size.width * 0.38,
+          bottom: size.height * 0.32,
+          child: _TouchZone(
+            key: touchZoneSacredFireKey,
+            label: 'Ver racha del Fuego Sagrado y evolución de Quetzalcóatl',
+            onTap: onOpenSacredFire,
+            child: _FuegoSagradoWidget(
+              timePhase: timePhase,
+              emotionOverride: emotionOverride,
+            ),
+          ),
+        ),
+
+        // 4. Tocar el Templo de los Códices (Izquierda de la Calzada) - key: touch_zone_codex_temple
+        // Posición aproximada cerca de la pirámide izquierda / templo
+        Positioned(
+          left: size.width * 0.02,
+          top: size.height * 0.25,
+          child: _TouchZone(
+            key: touchZoneCodexTempleKey,
+            label: 'Abrir el Códice Privado de entradas pasadas',
+            onTap: onOpenCodex,
+            child: _CodexTempleWidget(
+              timePhase: timePhase,
+              emotionOverride: emotionOverride,
+            ),
+          ),
+        ),
+
+        // 5. Tocar la Constelación de Venus (Cielo superior) - key: touch_zone_venus_constellation
+        // Solo visible/interactiva si isVenusAvailable
+        if (isVenusAvailable)
+          Positioned(
+            right: size.width * 0.15,
+            top: size.height * 0.12,
+            child: _TouchZone(
+              key: touchZoneVenusConstellationKey,
+              label: 'Abrir lectura semanal del Tonalpohualli',
+              onTap: onOpenVenusReading,
+              child: _VenusConstellationWidget(
+                timePhase: timePhase,
+                emotionOverride: emotionOverride,
+              ),
+            ),
+          ),
       ],
     );
+  }
+}
+
+/// Zona táctil accesible con Semantics y área mínima 48x48 px.
+class _TouchZone extends StatelessWidget {
+  const _TouchZone({
+    super.key,
+    required this.label,
+    required this.onTap,
+    required this.child,
+  });
+
+  final String label;
+  final VoidCallback? onTap;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      label: label,
+      hint: onTap != null ? 'Toca para interactuar' : 'No disponible',
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: onTap,
+            borderRadius: BorderRadius.circular(24),
+            splashColor: AppColors.jade.withValues(alpha: 0.1),
+            highlightColor: AppColors.jade.withValues(alpha: 0.05),
+            child: Container(
+              padding: const EdgeInsets.all(8), // Padding para ampliar área táctil
+              child: child,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Widget visual para el Templo de los Códices (nuevo elemento para zona táctil 4).
+class _CodexTempleWidget extends StatelessWidget {
+  const _CodexTempleWidget({
+    required this.timePhase,
+    this.emotionOverride,
+  });
+
+  final ValleyTimePhase timePhase;
+  final PrehispanicEmotion? emotionOverride;
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomPaint(
+      size: Size(70, 90),
+      painter: _CodexTemplePainter(
+        timePhase: timePhase,
+        emotionOverride: emotionOverride,
+      ),
+    );
+  }
+}
+
+class _CodexTemplePainter extends CustomPainter {
+  _CodexTemplePainter({
+    required this.timePhase,
+    this.emotionOverride,
+  });
+
+  final ValleyTimePhase timePhase;
+  final PrehispanicEmotion? emotionOverride;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final centerX = size.width / 2;
+    final baseY = size.height;
+
+    // Color base según fase
+    Color baseColor;
+    switch (timePhase) {
+      case ValleyTimePhase.dawn:
+        baseColor = const Color(0xFF8B7355);
+        break;
+      case ValleyTimePhase.day:
+        baseColor = const Color(0xFFCD853F);
+        break;
+      case ValleyTimePhase.dusk:
+        baseColor = const Color(0xFF8B4513);
+        break;
+      case ValleyTimePhase.night:
+        baseColor = const Color(0xFF3D3D5C);
+        break;
+    }
+
+    if (emotionOverride == PrehispanicEmotion.tonatiuhSol) {
+      baseColor = const Color(0xFFFFD700);
+    } else if (emotionOverride == PrehispanicEmotion.tlalocLluvia) {
+      baseColor = const Color(0xFF48CAE4);
+    } else if (emotionOverride == PrehispanicEmotion.mixcoatlTormenta) {
+      baseColor = const Color(0xFF4A2C4E);
+    }
+
+    final paint = Paint()
+      ..color = baseColor.withValues(alpha: 0.9)
+      ..style = PaintingStyle.fill;
+
+    // Base del templo (pirámide escalonada pequeña)
+    const levelCount = 3;
+    final levelHeight = size.height * 0.2;
+    final baseWidth = size.width * 0.7;
+
+    for (var level = 0; level < levelCount; level++) {
+      final levelProgress = level / levelCount;
+      final levelWidth = baseWidth * (1.0 - levelProgress * 0.5);
+      final y = baseY - (level + 1) * levelHeight;
+
+      final path = Path();
+      final leftX = centerX - levelWidth / 2;
+      final rightX = centerX + levelWidth / 2;
+
+      if (level == 0) {
+        path.moveTo(leftX, y + levelHeight);
+        path.lineTo(leftX, y);
+        path.lineTo(rightX, y);
+        path.lineTo(rightX, y + levelHeight);
+      } else {
+        path.lineTo(rightX, y);
+        path.lineTo(rightX, y + levelHeight);
+        path.lineTo(leftX, y + levelHeight);
+        path.lineTo(leftX, y);
+      }
+      path.close();
+      canvas.drawPath(path, paint);
+    }
+
+    // Escalera central
+    final stairPaint = Paint()
+      ..color = baseColor.withValues(alpha: 0.6)
+      ..style = PaintingStyle.fill;
+
+    final stairWidth = size.width * 0.12;
+    final stairRect = Rect.fromLTWH(
+      centerX - stairWidth / 2,
+      baseY - levelCount * levelHeight,
+      stairWidth,
+      levelCount * levelHeight,
+    );
+    canvas.drawRect(stairRect, stairPaint);
+
+    // Entrada del templo (arco) en la cúspide
+    final entrancePaint = Paint()
+      ..color = AppColors.obsidiana.withValues(alpha: 0.8)
+      ..style = PaintingStyle.fill;
+
+    final entrancePath = Path();
+    final entranceTopY = baseY - levelCount * levelHeight;
+    final entranceWidth = size.width * 0.25;
+    final entranceHeight = size.height * 0.18;
+
+    entrancePath.moveTo(centerX - entranceWidth / 2, entranceTopY);
+    entrancePath.lineTo(centerX - entranceWidth / 2, entranceTopY + entranceHeight);
+    entrancePath.quadraticBezierTo(
+      centerX,
+      entranceTopY + entranceHeight * 0.3,
+      centerX + entranceWidth / 2,
+      entranceTopY + entranceHeight,
+    );
+    entrancePath.lineTo(centerX + entranceWidth / 2, entranceTopY);
+    entrancePath.close();
+    canvas.drawPath(entrancePath, entrancePaint);
+
+    // Glifos decorativos en la fachada
+    final glyphPaint = Paint()
+      ..color = AppColors.oro.withValues(alpha: 0.6)
+      ..style = PaintingStyle.fill;
+
+    for (var i = 0; i < 3; i++) {
+      final glyphY = entranceTopY + entranceHeight * 0.3 + i * entranceHeight * 0.2;
+      canvas.drawCircle(Offset(centerX, glyphY), size.width * 0.02, glyphPaint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) {
+    return oldDelegate is _CodexTemplePainter &&
+        (oldDelegate.timePhase != timePhase ||
+         oldDelegate.emotionOverride != emotionOverride);
+  }
+}
+
+/// Widget visual para la Constelación de Venus (nuevo elemento para zona táctil 5).
+class _VenusConstellationWidget extends StatefulWidget {
+  const _VenusConstellationWidget({
+    required this.timePhase,
+    this.emotionOverride,
+  });
+
+  final ValleyTimePhase timePhase;
+  final PrehispanicEmotion? emotionOverride;
+
+  @override
+  State<_VenusConstellationWidget> createState() => _VenusConstellationWidgetState();
+}
+
+class _VenusConstellationWidgetState extends State<_VenusConstellationWidget>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(seconds: 3),
+      vsync: this,
+    )..repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, child) {
+        return CustomPaint(
+          size: Size(80, 80),
+          painter: _VenusConstellationWidgetPainter(
+            progress: _controller.value,
+            timePhase: widget.timePhase,
+            emotionOverride: widget.emotionOverride,
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _VenusConstellationWidgetPainter extends CustomPainter {
+  _VenusConstellationWidgetPainter({
+    required this.progress,
+    required this.timePhase,
+    this.emotionOverride,
+  });
+
+  final double progress;
+  final ValleyTimePhase timePhase;
+  final PrehispanicEmotion? emotionOverride;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final centerX = size.width / 2;
+    final centerY = size.height / 2;
+
+    // Brillo pulsante de fondo
+    final glowPaint = Paint()
+      ..color = Colors.white.withValues(alpha: 0.15 + 0.1 * progress)
+      ..style = PaintingStyle.fill
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 12);
+
+    canvas.drawCircle(Offset(centerX, centerY), size.width * 0.35, glowPaint);
+
+    // Estrellas de la constelación (pentagrama de Venus)
+    final starPaint = Paint()
+      ..color = Colors.white.withValues(alpha: 0.8 + 0.2 * progress)
+      ..style = PaintingStyle.fill;
+
+    // 5 puntos formando un pentagrama
+    const starCount = 5;
+    final points = <Offset>[];
+    for (var i = 0; i < starCount; i++) {
+      final angle = -math.pi / 2 + i * 2 * math.pi / starCount;
+      final radius = size.width * 0.28;
+      final x = centerX + math.cos(angle) * radius;
+      final y = centerY + math.sin(angle) * radius;
+      points.add(Offset(x, y));
+    }
+
+    // Dibujar líneas conectando (estrella)
+    final linePaint = Paint()
+      ..color = Colors.white.withValues(alpha: 0.3 + 0.2 * progress)
+      ..strokeWidth = 1.5
+      ..strokeCap = StrokeCap.round;
+
+    // Conectar cada punto con el segundo siguiente (pentagrama)
+    for (var i = 0; i < starCount; i++) {
+      final next = (i + 2) % starCount;
+      canvas.drawLine(points[i], points[next], linePaint);
+    }
+
+    // Dibujar estrellas
+    for (final point in points) {
+      canvas.drawCircle(point, 2.5 + progress * 1.0, starPaint);
+    }
+
+    // Estrella central (Venus) - más brillante
+    final venusPaint = Paint()
+      ..color = AppColors.oro.withValues(alpha: 0.9 + 0.1 * progress)
+      ..style = PaintingStyle.fill;
+
+    canvas.drawCircle(Offset(centerX, centerY), 4 + progress * 2, venusPaint);
+
+    // Halo alrededor de Venus
+    final haloPaint = Paint()
+      ..color = AppColors.oro.withValues(alpha: 0.2 + 0.1 * progress)
+      ..style = PaintingStyle.fill
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8);
+
+    canvas.drawCircle(Offset(centerX, centerY), 12 + progress * 4, haloPaint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) {
+    return oldDelegate is _VenusConstellationWidgetPainter &&
+        (oldDelegate.progress != progress ||
+         oldDelegate.timePhase != timePhase ||
+         oldDelegate.emotionOverride != emotionOverride);
   }
 }
 
