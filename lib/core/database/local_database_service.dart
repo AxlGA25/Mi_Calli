@@ -536,6 +536,35 @@ class LocalDatabaseService {
     return rows.isNotEmpty ? rows.first : null;
   }
 
+  // ─── Harvest Counter (para reliquia de Xochiquétzal) ───
+
+  static const String _harvestCounterItemId = 'total_harvested_plants';
+
+  /// Obtiene el contador total de plantas cosechadas históricamente.
+  ///
+  /// Se guarda en user_inventory con item_type='COUNTER'.
+  /// Retorna 0 si no existe aún.
+  Future<int> getHarvestCounter() async {
+    final item = await getInventoryItem(_harvestCounterItemId);
+    if (item == null) return 0;
+    return (item['quantity'] as int? ?? 0);
+  }
+
+  /// Incrementa el contador de plantas cosechadas en 1.
+  ///
+  /// Usa upsertInventoryItem para crear o actualizar el contador.
+  /// El unlocked_at se mantiene como la fecha de creación original.
+  Future<int> incrementHarvestCounter() async {
+    final current = await getHarvestCounter();
+    final newQuantity = current + 1;
+    return upsertInventoryItem(
+      itemId: _harvestCounterItemId,
+      itemType: 'COUNTER',
+      quantity: newQuantity,
+      unlockedAt: DateTime.now().toUtc(),
+    );
+  }
+
   /// Cierra la base de datos.
   Future<void> close() async {
     await _database?.close();

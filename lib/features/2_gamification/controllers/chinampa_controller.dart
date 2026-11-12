@@ -272,8 +272,17 @@ class ChinampaController {
       );
     }
 
+    final wasAlreadyHarvested = isHarvested;
+
     // Marcar como cosechado
     await _db.harvestSlot(slotIndex);
+
+    // Incrementar contador histórico de cosechas (para reliquia de Xochiquétzal)
+    // Solo si la planta NO estaba cosechada antes (evita doble conteo al llamar
+    // harvestAndClearSlot dos veces: primero sin limpiar y luego limpiando).
+    if (!wasAlreadyHarvested) {
+      await _db.incrementHarvestCounter();
+    }
 
     // Limpiar si se pide
     if (clearImmediately) {
