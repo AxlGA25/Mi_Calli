@@ -52,7 +52,7 @@
 ## Fase 4: Etapa 3 - Paisaje, Códice Biométrico, Altar de Calma, Ajustes y Accesibilidad
 - [x] **4.1.** Implementar `AmbientAudioService` (`audioplayers`): mezcla según clima y hora, inicia silenciado, se detiene al pasar a segundo plano.
   *Listo cuando:* alternar el silencio funciona y no suena nada con la app en segundo plano.
-- [ ] **4.2.** Construir `TeotihuacanValleyScreen` solo con el ciclo Día/Noche (4 gradientes) y las capas del `Stack`, sin zonas táctiles todavía.
+- [x] **4.2.** Construir `TeotihuacanValleyScreen` solo con el ciclo Día/Noche (4 gradientes) y las capas del `Stack`, sin zonas táctiles todavía.
   *Listo cuando:* el cielo cambia según la hora del dispositivo.
 - [ ] **4.3.** Agregar las zonas táctiles (Quetzalcóatl, Chinampa, Brasero, Templo del Códice) y el HUD de tres botones (audio, Ajustes, Caracol SOS), con `Semantics` en cada uno. Los destinos que aún no existan pueden ser pantallas vacías.
   *Listo cuando:* cada zona navega a su destino, tiene área de toque de al menos $48 \times 48$ px y etiqueta para lectores de pantalla.
