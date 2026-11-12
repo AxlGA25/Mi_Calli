@@ -50,7 +50,7 @@
   *Listo cuando:* pruebas cubren: se habilita en domingo o a los 7 días de la última lectura, sigue disponible hasta abrirse, no se ofrece sin entradas en la semana, y una semana con datos de ejemplo produce una lectura coherente.
 
 ## Fase 4: Etapa 3 - Paisaje, Códice Biométrico, Altar de Calma, Ajustes y Accesibilidad
-- [ ] **4.1.** Implementar `AmbientAudioService` (`audioplayers`): mezcla según clima y hora, inicia silenciado, se detiene al pasar a segundo plano.
+- [x] **4.1.** Implementar `AmbientAudioService` (`audioplayers`): mezcla según clima y hora, inicia silenciado, se detiene al pasar a segundo plano.
   *Listo cuando:* alternar el silencio funciona y no suena nada con la app en segundo plano.
 - [ ] **4.2.** Construir `TeotihuacanValleyScreen` solo con el ciclo Día/Noche (4 gradientes) y las capas del `Stack`, sin zonas táctiles todavía.
   *Listo cuando:* el cielo cambia según la hora del dispositivo.
