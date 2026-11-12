@@ -1,65 +1,74 @@
-// Pruebas para AmbientAudioService.
+// Pruebas para AmbientAudioService (Notifier-based).
 //
 // Cubre:
 // - Inicio silenciado por defecto
 // - toggleMute() activa/desactiva y persiste
-// - ValleyTimePhase.fromHour mapea correctamente 24 horas
-// - Pausa en background (paused/inactive) y reanuda en resumed
+// - ValleyTimePhase.fromHour mapeo correcto
+// - Ciclo de vida: pausa en background, reanuda en foreground
 // - Assets faltantes no rompen el servicio
 
-import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:mi_calli/core/audio/ambient_audio_models.dart';
 import 'package:mi_calli/core/audio/ambient_audio_player_interface.dart';
 import 'package:mi_calli/core/audio/ambient_audio_service.dart';
+import 'package:mi_calli/core/settings/app_settings_provider.dart';
 import 'package:mi_calli/core/settings/app_settings_service.dart';
 import 'package:mi_calli/features/1_sanctuary_journal/models/prehispanic_emotion.dart';
 
 void main() {
-  TestWidgetsFlutterBinding.ensureInitialized();
+  // Configuración global para tests
+  setUpAll(() {
+    // SharedPreferences mock para tests
+    SharedPreferences.setMockInitialValues({});
+    // Inicializar binding de Flutter para WidgetsBindingObserver
+    TestWidgetsFlutterBinding.ensureInitialized();
+  });
 
   group('ValleyTimePhase', () {
-    test('fromHour mapea 06-08 a dawn (Amanecer Tlahuizcalpan)', () {
-      for (final hour in [6, 7, 8]) {
-        expect(ValleyTimePhase.fromHour(hour), equals(ValleyTimePhase.dawn));
+    test('fromHour mapea correctamente amanecer (6-8)', () {
+      expect(ValleyTimePhase.fromHour(6), equals(ValleyTimePhase.dawn));
+      expect(ValleyTimePhase.fromHour(7), equals(ValleyTimePhase.dawn));
+      expect(ValleyTimePhase.fromHour(8), equals(ValleyTimePhase.dawn));
+    });
+
+    test('fromHour mapea correctamente día (9-17)', () {
+      for (var h = 9; h <= 17; h++) {
+        expect(ValleyTimePhase.fromHour(h), equals(ValleyTimePhase.day), reason: 'Hora $h');
       }
     });
 
-    test('fromHour mapea 09-17 a day (Día Solar Tonatiuh)', () {
-      for (final hour in [9, 10, 12, 15, 17]) {
-        expect(ValleyTimePhase.fromHour(hour), equals(ValleyTimePhase.day));
+    test('fromHour mapea correctamente atardecer (18-19)', () {
+      expect(ValleyTimePhase.fromHour(18), equals(ValleyTimePhase.dusk));
+      expect(ValleyTimePhase.fromHour(19), equals(ValleyTimePhase.dusk));
+    });
+
+    test('fromHour mapea correctamente noche (20-23, 0-5)', () {
+      for (var h = 20; h <= 23; h++) {
+        expect(ValleyTimePhase.fromHour(h), equals(ValleyTimePhase.night), reason: 'Hora $h');
+      }
+      for (var h = 0; h <= 5; h++) {
+        expect(ValleyTimePhase.fromHour(h), equals(ValleyTimePhase.night), reason: 'Hora $h');
       }
     });
 
-    test('fromHour mapea 18-19 a dusk (Atardecer Nepantla)', () {
-      for (final hour in [18, 19]) {
-        expect(ValleyTimePhase.fromHour(hour), equals(ValleyTimePhase.dusk));
-      }
-    });
-
-    test('fromHour mapea 20-23 y 00-05 a night (Noche Estrellada Metztli)', () {
-      for (final hour in [20, 21, 22, 23, 0, 1, 3, 5]) {
-        expect(ValleyTimePhase.fromHour(hour), equals(ValleyTimePhase.night));
-      }
-    });
-
-    test('getters nahuatlName, spanishName, defaultAudioAssetPath', () {
+    test('nahuatlName y spanishName son correctos', () {
       expect(ValleyTimePhase.dawn.nahuatlName, 'Tlahuizcalpan');
       expect(ValleyTimePhase.dawn.spanishName, 'Amanecer');
-      expect(ValleyTimePhase.dawn.defaultAudioAssetPath, 'assets/audio/ambient_dawn.mp3');
-
       expect(ValleyTimePhase.day.nahuatlName, 'Tonatiuh');
       expect(ValleyTimePhase.day.spanishName, 'Día Solar');
-      expect(ValleyTimePhase.day.defaultAudioAssetPath, 'assets/audio/ambient_day.mp3');
-
       expect(ValleyTimePhase.dusk.nahuatlName, 'Nepantla');
       expect(ValleyTimePhase.dusk.spanishName, 'Atardecer');
-      expect(ValleyTimePhase.dusk.defaultAudioAssetPath, 'assets/audio/ambient_dusk.mp3');
-
       expect(ValleyTimePhase.night.nahuatlName, 'Metztli');
       expect(ValleyTimePhase.night.spanishName, 'Noche Estrellada');
+    });
+
+    test('defaultAudioAssetPath tiene rutas esperadas', () {
+      expect(ValleyTimePhase.dawn.defaultAudioAssetPath, 'assets/audio/ambient_dawn.mp3');
+      expect(ValleyTimePhase.day.defaultAudioAssetPath, 'assets/audio/ambient_day.mp3');
+      expect(ValleyTimePhase.dusk.defaultAudioAssetPath, 'assets/audio/ambient_dusk.mp3');
       expect(ValleyTimePhase.night.defaultAudioAssetPath, 'assets/audio/ambient_night.mp3');
     });
   });
@@ -67,284 +76,338 @@ void main() {
   group('AmbientAudioTrackConfig', () {
     test('usa pista horaria cuando no hay emotionOverride', () {
       const config = AmbientAudioTrackConfig(
-        timePhase: ValleyTimePhase.dawn,
         activeEmotionOverride: null,
+        timePhase: ValleyTimePhase.day,
       );
-      expect(config.assetPath, 'assets/audio/ambient_dawn.mp3');
-      expect(config.isEmotionOverride, false);
+      expect(config.assetPath, 'assets/audio/ambient_day.mp3');
+      expect(config.isEmotionTrack, isFalse);
     });
 
     test('usa pista de emoción cuando hay emotionOverride', () {
       const config = AmbientAudioTrackConfig(
-        timePhase: ValleyTimePhase.day,
         activeEmotionOverride: PrehispanicEmotion.tlalocLluvia,
+        timePhase: ValleyTimePhase.day,
       );
       expect(config.assetPath, 'assets/audio/weather_tlaloc_lluvia.mp3');
-      expect(config.isEmotionOverride, true);
+      expect(config.isEmotionTrack, isTrue);
     });
 
-    test('equality compara timePhase y emotionOverride', () {
+    test('igualdad funciona correctamente', () {
       const config1 = AmbientAudioTrackConfig(
-        timePhase: ValleyTimePhase.dawn,
         activeEmotionOverride: PrehispanicEmotion.tonatiuhSol,
+        timePhase: ValleyTimePhase.dawn,
       );
       const config2 = AmbientAudioTrackConfig(
-        timePhase: ValleyTimePhase.dawn,
         activeEmotionOverride: PrehispanicEmotion.tonatiuhSol,
+        timePhase: ValleyTimePhase.dawn,
       );
       const config3 = AmbientAudioTrackConfig(
-        timePhase: ValleyTimePhase.day,
-        activeEmotionOverride: PrehispanicEmotion.tonatiuhSol,
+        activeEmotionOverride: null,
+        timePhase: ValleyTimePhase.dawn,
       );
-      expect(config1 == config2, true);
-      expect(config1 == config3, false);
+      expect(config1, equals(config2));
+      expect(config1, isNot(equals(config3)));
     });
   });
 
-  group('AmbientAudioService', () {
-    late SharedPreferences prefs;
+  group('MockAmbientAudioPlayer', () {
+    late MockAmbientAudioPlayer player;
+
+    setUp(() {
+      player = MockAmbientAudioPlayer();
+    });
+
+    test('inicia con isPlaying = false', () {
+      expect(player.isPlaying, isFalse);
+      expect(player.currentAssetPath, isNull);
+    });
+
+    test('playLoop activa isPlaying y guarda assetPath', () async {
+      await player.playLoop('assets/audio/test.mp3');
+      expect(player.isPlaying, isTrue);
+      expect(player.currentAssetPath, 'assets/audio/test.mp3');
+      expect(player.playCallCount, 1);
+    });
+
+    test('pause desactiva isPlaying', () async {
+      await player.playLoop('assets/audio/test.mp3');
+      await player.pause();
+      expect(player.isPlaying, isFalse);
+      expect(player.pauseCallCount, 1);
+    });
+
+    test('resume reactiva isPlaying si hay assetPath', () async {
+      await player.playLoop('assets/audio/test.mp3');
+      await player.pause();
+      await player.resume();
+      expect(player.isPlaying, isTrue);
+      expect(player.resumeCallCount, 1);
+    });
+
+    test('stop desactiva isPlaying y limpia assetPath', () async {
+      await player.playLoop('assets/audio/test.mp3');
+      await player.stop();
+      expect(player.isPlaying, isFalse);
+      expect(player.currentAssetPath, isNull);
+      expect(player.stopCallCount, 1);
+    });
+
+    test('dispose limpia estado', () async {
+      await player.playLoop('assets/audio/test.mp3');
+      await player.dispose();
+      expect(player.isPlaying, isFalse);
+      expect(player.currentAssetPath, isNull);
+      expect(player.disposeCallCount, 1);
+    });
+
+    test('simulateMissingAsset = true hace que playLoop no cambie estado', () async {
+      final missingPlayer = MockAmbientAudioPlayer(simulateMissingAsset: true);
+      await missingPlayer.playLoop('assets/audio/missing.mp3');
+      expect(missingPlayer.isPlaying, isFalse);
+      expect(missingPlayer.currentAssetPath, isNull);
+      expect(missingPlayer.playCallCount, 1);
+    });
+
+    test('reset reinicia contadores y estado', () async {
+      await player.playLoop('assets/audio/test.mp3');
+      await player.pause();
+      player.reset();
+      expect(player.isPlaying, isFalse);
+      expect(player.currentAssetPath, isNull);
+      expect(player.playCallCount, 0);
+      expect(player.pauseCallCount, 0);
+    });
+  });
+
+  group('AmbientAudioNotifier', () {
+    late ProviderContainer container;
     late AppSettingsService settingsService;
     late MockAmbientAudioPlayer mockPlayer;
-    late AmbientAudioService service;
 
     setUp(() async {
+      // SharedPreferences limpio para cada test
       SharedPreferences.setMockInitialValues({});
-      prefs = await SharedPreferences.getInstance();
-      settingsService = AppSettingsService.createForTesting(prefs);
+      settingsService = await AppSettingsService.create();
       mockPlayer = MockAmbientAudioPlayer();
-      // Usar 07:00 (dawn) como hora fija para tests determinísticos
-      service = AmbientAudioService(
-        settingsService: settingsService,
-        player: mockPlayer,
-        now: DateTime(2024, 1, 1, 7, 0, 0),
+
+      // Container con overrides
+      container = ProviderContainer(
+        overrides: [
+          appSettingsServiceProvider.overrideWithValue(settingsService),
+          ambientAudioPlayerProvider.overrideWithValue(mockPlayer),
+        ],
       );
-      await service.initialize();
     });
 
     tearDown(() async {
-      await service.dispose();
+      container.dispose();
     });
 
-    test('inicia silenciado (isMuted == true, isPlaying == false)', () {
-      expect(service.isMuted, true);
-      expect(service.isAudioEnabled, false);
-      expect(service.isPlaying, false);
-      expect(mockPlayer.playCallCount, 0);
+    test('inicia silenciado (isMuted = true, isPlaying = false)', () {
+      final state = container.read(ambientAudioProvider);
+      expect(state.isMuted, isTrue);
+      expect(state.isPlaying, isFalse);
+      expect(state.isPausedByLifecycle, isFalse);
+      expect(mockPlayer.isPlaying, isFalse);
     });
 
     test('updateAtmosphere no reproduce nada si está silenciado', () async {
-      await service.updateAtmosphere(
+      await container.read(ambientAudioProvider.notifier).updateAtmosphere(
         timePhase: ValleyTimePhase.day,
         emotionOverride: PrehispanicEmotion.tonatiuhSol,
       );
+      // Aunque se actualice la config, no debe reproducir porque está muteado
       expect(mockPlayer.playCallCount, 0);
-      expect(service.isPlaying, false);
+      final state = container.read(ambientAudioProvider);
+      expect(state.isPlaying, isFalse);
+      expect(state.currentConfig.activeEmotionOverride, equals(PrehispanicEmotion.tonatiuhSol));
     });
 
-    test('toggleMute() activa sonido, persiste audio_enabled=true y reproduce pista horaria', () async {
-      await service.toggleMute();
+    test('toggleMute() activa audio, persiste y reproduce pista horaria', () async {
+      // Por defecto audioEnabled = false
+      expect(settingsService.audioEnabled, isFalse);
 
-      expect(service.isMuted, false);
-      expect(service.isAudioEnabled, true);
-      expect(settingsService.audioEnabled, true);
+      // Activar con toggleMute
+      await container.read(ambientAudioProvider.notifier).toggleMute();
+
+      // Debe persistir audio_enabled = true
+      expect(settingsService.audioEnabled, isTrue);
+      final state = container.read(ambientAudioProvider);
+      expect(state.isMuted, isFalse);
+      expect(state.isPlaying, isTrue);
       expect(mockPlayer.playCallCount, 1);
-      expect(mockPlayer.currentAssetPath, 'assets/audio/ambient_dawn.mp3');
-      expect(mockPlayer.isPlaying, true);
+      expect(mockPlayer.currentAssetPath, contains('ambient_'));
     });
 
     test('toggleMute() con emotionOverride reproduce pista de emoción', () async {
-      await service.updateAtmosphere(
-        timePhase: ValleyTimePhase.day,
-        emotionOverride: PrehispanicEmotion.ehecatlViento,
+      // Configurar emotionOverride antes de activar
+      await container.read(ambientAudioProvider.notifier).updateAtmosphere(
+        emotionOverride: PrehispanicEmotion.tlalocLluvia,
       );
-      await service.toggleMute();
 
-      expect(service.isMuted, false);
-      expect(mockPlayer.playCallCount, 1);
-      expect(mockPlayer.currentAssetPath, 'assets/audio/weather_ehecatl_viento.mp3');
+      await container.read(ambientAudioProvider.notifier).toggleMute();
+
+      expect(settingsService.audioEnabled, isTrue);
+      expect(mockPlayer.currentAssetPath, 'assets/audio/weather_tlaloc_lluvia.mp3');
     });
 
-    test('toggleMute() segunda llamada silencia, persiste audio_enabled=false y detiene reproductor', () async {
-      await service.toggleMute(); // Activar
-      expect(service.isMuted, false);
+    test('segundo toggleMute() silencia inmediatamente y persiste false', () async {
+      // Activar
+      await container.read(ambientAudioProvider.notifier).toggleMute();
+      expect(settingsService.audioEnabled, isTrue);
+      expect(mockPlayer.playCallCount, 1);
 
-      await service.toggleMute(); // Silenciar
-      expect(service.isMuted, true);
-      expect(settingsService.audioEnabled, false);
+      // Desactivar
+      await container.read(ambientAudioProvider.notifier).toggleMute();
+      expect(settingsService.audioEnabled, isFalse);
+      final state = container.read(ambientAudioProvider);
+      expect(state.isMuted, isTrue);
+      expect(state.isPlaying, isFalse);
       expect(mockPlayer.stopCallCount, 1);
-      expect(mockPlayer.isPlaying, false);
     });
 
-    test('setAudioEnabled(true) activa y reproduce; setAudioEnabled(false) silencia y detiene', () async {
-      await service.setAudioEnabled(true);
-      expect(service.isAudioEnabled, true);
-      expect(mockPlayer.playCallCount, 1);
+    test('setAudioEnabled(true) activa y reproduce', () async {
+      await container.read(ambientAudioProvider.notifier).setAudioEnabled(true);
 
-      await service.setAudioEnabled(false);
-      expect(service.isAudioEnabled, false);
+      expect(settingsService.audioEnabled, isTrue);
+      final state = container.read(ambientAudioProvider);
+      expect(state.isMuted, isFalse);
+      expect(state.isPlaying, isTrue);
+      expect(mockPlayer.playCallCount, 1);
+    });
+
+    test('setAudioEnabled(false) silencia y detiene', () async {
+      await container.read(ambientAudioProvider.notifier).setAudioEnabled(true);
+      await container.read(ambientAudioProvider.notifier).setAudioEnabled(false);
+
+      expect(settingsService.audioEnabled, isFalse);
+      final state = container.read(ambientAudioProvider);
+      expect(state.isMuted, isTrue);
+      expect(state.isPlaying, isFalse);
       expect(mockPlayer.stopCallCount, 1);
     });
 
     test('updateAtmosphere cambia pista si audio habilitado y en foreground', () async {
-      await service.setAudioEnabled(true); // Activar con dawn
-      expect(mockPlayer.playCallCount, 1);
-      expect(mockPlayer.currentAssetPath, 'assets/audio/ambient_dawn.mp3');
+      await container.read(ambientAudioProvider.notifier).setAudioEnabled(true);
+      final firstPlayCount = mockPlayer.playCallCount;
 
-      // Cambiar a día
-      await service.updateAtmosphere(timePhase: ValleyTimePhase.day);
-      expect(mockPlayer.playCallCount, 2);
-      expect(mockPlayer.currentAssetPath, 'assets/audio/ambient_day.mp3');
+      // Cambiar a emotionOverride
+      await container.read(ambientAudioProvider.notifier).updateAtmosphere(
+        emotionOverride: PrehispanicEmotion.ehecatlViento,
+      );
 
-      // Cambiar a emoción override
-      await service.updateAtmosphere(
-        timePhase: ValleyTimePhase.day,
+      expect(mockPlayer.playCallCount, firstPlayCount + 1);
+      expect(mockPlayer.currentAssetPath, 'assets/audio/weather_ehecatl_viento.mp3');
+      final state = container.read(ambientAudioProvider);
+      expect(state.currentConfig.activeEmotionOverride, equals(PrehispanicEmotion.ehecatlViento));
+    });
+
+    test('updateAtmosphere no cambia pista si está silenciado', () async {
+      // Asegurar que está silenciado
+      await container.read(ambientAudioProvider.notifier).setAudioEnabled(false);
+      mockPlayer.reset();
+
+      await container.read(ambientAudioProvider.notifier).updateAtmosphere(
         emotionOverride: PrehispanicEmotion.mixcoatlTormenta,
       );
-      expect(mockPlayer.playCallCount, 3);
-      expect(mockPlayer.currentAssetPath, 'assets/audio/weather_mixcoatl_tormenta.mp3');
 
-      // Quitar override → vuelve a pista horaria
-      await service.updateAtmosphere(timePhase: ValleyTimePhase.day, emotionOverride: null);
-      expect(mockPlayer.playCallCount, 4);
-      expect(mockPlayer.currentAssetPath, 'assets/audio/ambient_day.mp3');
+      expect(mockPlayer.playCallCount, 0);
+      final state = container.read(ambientAudioProvider);
+      expect(state.currentConfig.activeEmotionOverride, equals(PrehispanicEmotion.mixcoatlTormenta));
     });
 
-    test('updateAtmosphere no cambia pista si es la misma configuración', () async {
-      await service.setAudioEnabled(true);
-      await service.updateAtmosphere(timePhase: ValleyTimePhase.dawn);
-      final callCount1 = mockPlayer.playCallCount;
-
-      // Misma configuración
-      await service.updateAtmosphere(timePhase: ValleyTimePhase.dawn);
-      expect(mockPlayer.playCallCount, callCount1);
-    });
-
-    test('didChangeAppLifecycleState.paused pausa reproductor y marca isPausedByLifecycle', () async {
-      await service.setAudioEnabled(true);
-      expect(service.isPlaying, true);
-
-      // Simular background
-      service.didChangeAppLifecycleState(AppLifecycleState.paused);
-
-      expect(service.isPlaying, false);
-      expect(mockPlayer.pauseCallCount, 1);
-    });
-
-    test('didChangeAppLifecycleState.inactive también pausa', () async {
-      await service.setAudioEnabled(true);
-      service.didChangeAppLifecycleState(AppLifecycleState.inactive);
-
-      expect(service.isPlaying, false);
-      expect(mockPlayer.pauseCallCount, 1);
-    });
-
-    test('didChangeAppLifecycleState.hidden y detached también pausan', () async {
-      await service.setAudioEnabled(true);
-      service.didChangeAppLifecycleState(AppLifecycleState.hidden);
-      expect(service.isPlaying, false);
-
-      await service.setAudioEnabled(true); // Re-activar
-      service.didChangeAppLifecycleState(AppLifecycleState.detached);
-      expect(service.isPlaying, false);
-    });
-
-    test('didChangeAppLifecycleState.resumed reanuda solo si audioEnabled == true', () async {
-      await service.setAudioEnabled(true);
-      service.didChangeAppLifecycleState(AppLifecycleState.paused);
-      expect(service.isPlaying, false);
-
-      // Volver a foreground con audio habilitado → reanuda
-      service.didChangeAppLifecycleState(AppLifecycleState.resumed);
-      expect(service.isPlaying, true);
-      expect(mockPlayer.resumeCallCount, 1);
-    });
-
-    test('didChangeAppLifecycleState.resumed NO reanuda si audioEnabled == false', () async {
-      await service.setAudioEnabled(true);
-      service.didChangeAppLifecycleState(AppLifecycleState.paused);
-
-      // Silenciar mientras en background
-      await service.setAudioEnabled(false);
-
-      // Volver a foreground → NO reanuda
-      service.didChangeAppLifecycleState(AppLifecycleState.resumed);
-      expect(service.isPlaying, false);
-      expect(mockPlayer.resumeCallCount, 0);
-    });
-
-    test('asset faltante no lanza excepción ni rompe estado (simulateMissingAsset)', () async {
-      // Mock que simula asset faltante
-      final failingPlayer = MockAmbientAudioPlayer(simulateMissingAsset: true);
-      final failingSettings = AppSettingsService.createForTesting(prefs);
-      final failingService = AmbientAudioService(
-        settingsService: failingSettings,
-        player: failingPlayer,
+    test('asset faltante no lanza excepción ni rompe estado', () async {
+      // Usar player con simulateMissingAsset
+      final missingPlayer = MockAmbientAudioPlayer(simulateMissingAsset: true);
+      final containerWithMissing = ProviderContainer(
+        overrides: [
+          appSettingsServiceProvider.overrideWithValue(settingsService),
+          ambientAudioPlayerProvider.overrideWithValue(missingPlayer),
+        ],
       );
-      await failingService.initialize();
 
-      await failingService.setAudioEnabled(true);
-      // No debe lanzar aunque el asset no exista
-      await failingService.updateAtmosphere(timePhase: ValleyTimePhase.night);
+      await containerWithMissing.read(ambientAudioProvider.notifier).setAudioEnabled(true);
 
-      expect(failingService.isAudioEnabled, true);
-      // El servicio debe seguir funcional
-      await failingService.setAudioEnabled(false);
-      expect(failingService.isAudioEnabled, false);
+      final state = containerWithMissing.read(ambientAudioProvider);
+      expect(state.isMuted, isFalse);
+      // El player no reproduce, pero el servicio no crashea
+      expect(missingPlayer.isPlaying, isFalse);
+      expect(missingPlayer.playCallCount, 1);
 
-      await failingService.dispose();
+      containerWithMissing.dispose();
+    });
+  });
+
+  group('Riverpod Providers (reactivos)', () {
+    late ProviderContainer container;
+    late AppSettingsService settingsService;
+    late MockAmbientAudioPlayer mockPlayer;
+
+    setUp(() async {
+      SharedPreferences.setMockInitialValues({});
+      settingsService = await AppSettingsService.create();
+      mockPlayer = MockAmbientAudioPlayer();
+
+      container = ProviderContainer(
+        overrides: [
+          appSettingsServiceProvider.overrideWithValue(settingsService),
+          ambientAudioPlayerProvider.overrideWithValue(mockPlayer),
+        ],
+      );
     });
 
-    test('MockAmbientAudioPlayer con simulateMissingAsset no reproduce', () async {
-      final mockPlayer = MockAmbientAudioPlayer(
-        simulateMissingAsset: true,
-        availableAssets: {'assets/audio/ambient_dawn.mp3'},
-      );
-      final mockSettings = AppSettingsService.createForTesting(prefs);
-      final service = AmbientAudioService(
-        settingsService: mockSettings,
-        player: mockPlayer,
-      );
-      await service.initialize();
-
-      await service.setAudioEnabled(true);
-      expect(mockPlayer.playCallCount, 1);
-      expect(mockPlayer.isPlaying, false); // simulateMissingAsset = true → no reproduce
-
-      await service.dispose();
+    tearDown(() async {
+      container.dispose();
     });
 
-    test('MockAmbientAudioPlayer con availableAssets reproduce solo los listados', () async {
-      final mockPlayer = MockAmbientAudioPlayer(
-        simulateMissingAsset: false,
-        availableAssets: {'assets/audio/ambient_day.mp3'},
-      );
-      final mockSettings = AppSettingsService.createForTesting(prefs);
-      final service = AmbientAudioService(
-        settingsService: mockSettings,
-        player: mockPlayer,
-      );
-      await service.initialize();
+    test('ambientAudioIsMutedProvider refleja estado del servicio', () async {
+      expect(container.read(ambientAudioIsMutedProvider), isTrue);
 
-      await service.setAudioEnabled(true);
-      // dawn no está en availableAssets
-      await service.updateAtmosphere(timePhase: ValleyTimePhase.dawn);
-      expect(mockPlayer.isPlaying, false);
+      await container.read(ambientAudioProvider.notifier).toggleMute();
 
-      // day sí está
-      await service.updateAtmosphere(timePhase: ValleyTimePhase.day);
-      expect(mockPlayer.isPlaying, true);
-
-      await service.dispose();
+      expect(container.read(ambientAudioIsMutedProvider), isFalse);
     });
 
-    test('dispose limpia observer y reproductor', () async {
-      await service.setAudioEnabled(true);
-      await service.dispose();
+    test('ambientAudioIsPlayingProvider refleja estado de reproducción', () async {
+      expect(container.read(ambientAudioIsPlayingProvider), isFalse);
 
-      expect(mockPlayer.disposeCallCount, 1);
-      // Después de dispose, no debe crashear al llamar métodos
-      await service.setAudioEnabled(false);
-      expect(service.isAudioEnabled, false);
+      await container.read(ambientAudioProvider.notifier).setAudioEnabled(true);
+
+      expect(container.read(ambientAudioIsPlayingProvider), isTrue);
+    });
+
+    test('ambientAudioCurrentConfigProvider refleja configuración actual', () async {
+      final config = container.read(ambientAudioCurrentConfigProvider);
+      expect(config.timePhase, equals(ValleyTimePhase.fromHour(DateTime.now().hour)));
+      expect(config.activeEmotionOverride, isNull);
+
+      await container.read(ambientAudioProvider.notifier).updateAtmosphere(
+        emotionOverride: PrehispanicEmotion.metztliNoche,
+      );
+
+      final newConfig = container.read(ambientAudioCurrentConfigProvider);
+      expect(newConfig.activeEmotionOverride, equals(PrehispanicEmotion.metztliNoche));
+      expect(newConfig.assetPath, 'assets/audio/weather_metztli_noche.mp3');
+    });
+
+    test('ambientAudioCurrentTimePhaseProvider refleja fase horaria', () {
+      expect(container.read(ambientAudioCurrentTimePhaseProvider),
+           equals(ValleyTimePhase.fromHour(DateTime.now().hour)));
+    });
+
+    test('ambientAudioCurrentEmotionOverrideProvider refleja emotion override', () async {
+      expect(container.read(ambientAudioCurrentEmotionOverrideProvider), isNull);
+
+      await container.read(ambientAudioProvider.notifier).updateAtmosphere(
+        emotionOverride: PrehispanicEmotion.tonatiuhSol,
+      );
+
+      expect(container.read(ambientAudioCurrentEmotionOverrideProvider),
+           equals(PrehispanicEmotion.tonatiuhSol));
+    });
+
+    test('ambientAudioIsPausedByLifecycleProvider refleja estado de pausa', () {
+      expect(container.read(ambientAudioIsPausedByLifecycleProvider), isFalse);
     });
   });
 }

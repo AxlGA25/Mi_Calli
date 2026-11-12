@@ -1,92 +1,180 @@
-// Servicio principal de audio ambiental del Valle de Teotihuacán.
+// Servicio principal de audio ambiental de Mi Calli.
 //
-// Gestiona la mezcla según clima emocional y hora, el estado de silencio
-// y el ciclo de vida de la app (pausa en background, reanuda en foreground).
-//
-// Inicia silenciado por defecto (audioEnabled == false) hasta que el usuario
-// lo active explícitamente (CONTEXT.md §5C e INSTRUCTIONS.md §2).
-
-import 'dart:async';
+// Gestiona la mezcla de audio según clima emocional y hora del día,
+// el estado de silencio (mute), y el ciclo de vida de la app
+// (pausa en background, reanuda en foreground).
 
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'ambient_audio_models.dart';
 import 'ambient_audio_player_interface.dart';
-import '../settings/app_settings_service.dart';
 import '../settings/app_settings_provider.dart';
+import '../settings/app_settings_service.dart';
 import '../../features/1_sanctuary_journal/models/prehispanic_emotion.dart';
 
-/// Servicio que gestiona el audio ambiental del Valle.
+/// Estado inmutable del servicio de audio ambiental.
 ///
-/// - Mezcla pista horaria (ValleyTimePhase) + clima emocional (PrehispanicEmotion)
-/// - Inicia silenciado (isMuted == true / audioEnabled == false)
-/// - Pausa automática en background (AppLifecycleState.paused/inactive/hidden/detached)
-/// - Reanuda en foreground solo si audioEnabled == true
-/// - Persiste preferencia en AppSettingsService (shared_preferences)
-class AmbientAudioService with WidgetsBindingObserver {
-  AmbientAudioService({
-    required AppSettingsService settingsService,
-    AmbientAudioPlayerInterface? player,
-    DateTime? now, // Para tests: inyectar hora fija
-  })  : _settingsService = settingsService,
-        _player = player ?? AudioplayersAmbientPlayer() {
-    // Registrar observer de ciclo de vida
-    WidgetsBinding.instance.addObserver(this);
+/// Se usa con Riverpod Notifier para reactividad automática.
+class AmbientAudioState {
+  const AmbientAudioState({
+    required this.isMuted,
+    required this.isPlaying,
+    required this.isPausedByLifecycle,
+    required this.currentConfig,
+    required this.currentTimePhase,
+    required this.currentEmotionOverride,
+  });
 
-    final referenceTime = now ?? DateTime.now();
-    // Inicializar estado desde settings
-    _isMuted = !_settingsService.audioEnabled;
-    _currentTimePhase = ValleyTimePhase.fromHour(referenceTime.hour);
-    // Inicializar configuración de pista con la fase horaria actual (sin override de emoción)
-    _currentTrackConfig = AmbientAudioTrackConfig(timePhase: _currentTimePhase);
+  /// Estado inicial: silenciado, sin reproducir, fase horaria actual.
+  factory AmbientAudioState.initial(AppSettingsService settingsService) {
+    return AmbientAudioState(
+      isMuted: !settingsService.audioEnabled,
+      isPlaying: false,
+      isPausedByLifecycle: false,
+      currentConfig: AmbientAudioTrackConfig(
+        timePhase: ValleyTimePhase.fromHour(DateTime.now().hour),
+      ),
+      currentTimePhase: ValleyTimePhase.fromHour(DateTime.now().hour),
+      currentEmotionOverride: null,
+    );
+  }
+
+  final bool isMuted;
+  final bool isPlaying;
+  final bool isPausedByLifecycle;
+  final AmbientAudioTrackConfig currentConfig;
+  final ValleyTimePhase currentTimePhase;
+  final PrehispanicEmotion? currentEmotionOverride;
+
+  AmbientAudioState copyWith({
+    bool? isMuted,
+    bool? isPlaying,
+    bool? isPausedByLifecycle,
+    AmbientAudioTrackConfig? currentConfig,
+    ValleyTimePhase? currentTimePhase,
+    PrehispanicEmotion? currentEmotionOverride,
+  }) {
+    return AmbientAudioState(
+      isMuted: isMuted ?? this.isMuted,
+      isPlaying: isPlaying ?? this.isPlaying,
+      isPausedByLifecycle: isPausedByLifecycle ?? this.isPausedByLifecycle,
+      currentConfig: currentConfig ?? this.currentConfig,
+      currentTimePhase: currentTimePhase ?? this.currentTimePhase,
+      currentEmotionOverride: currentEmotionOverride ?? this.currentEmotionOverride,
+    );
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is AmbientAudioState &&
+        other.isMuted == isMuted &&
+        other.isPlaying == isPlaying &&
+        other.isPausedByLifecycle == isPausedByLifecycle &&
+        other.currentConfig == currentConfig &&
+        other.currentTimePhase == currentTimePhase &&
+        other.currentEmotionOverride == currentEmotionOverride;
+  }
+
+  @override
+  int get hashCode => Object.hash(
+        isMuted,
+        isPlaying,
+        isPausedByLifecycle,
+        currentConfig,
+        currentTimePhase,
+        currentEmotionOverride,
+      );
+
+  @override
+  String toString() {
+    return 'AmbientAudioState('
+        'isMuted: $isMuted, '
+        'isPlaying: $isPlaying, '
+        'isPausedByLifecycle: $isPausedByLifecycle, '
+        'currentConfig: $currentConfig, '
+        'currentTimePhase: $currentTimePhase, '
+        'currentEmotionOverride: ${currentEmotionOverride?.id ?? 'none'})';
+  }
+}
+
+/// Servicio interno que maneja la lógica de reproducción y ciclo de vida.
+///
+/// No es un Notifier; es la implementación concreta que el Notifier usa.
+class _AmbientAudioServiceImpl with WidgetsBindingObserver {
+  _AmbientAudioServiceImpl({
+    required AppSettingsService settingsService,
+    required AmbientAudioPlayerInterface player,
+    required void Function(AmbientAudioState) onStateChange,
+  })  : _settingsService = settingsService,
+        _player = player,
+        _onStateChange = onStateChange {
+    WidgetsBinding.instance.addObserver(this);
+    // Estado inicial
+    _state = AmbientAudioState.initial(settingsService);
+    _onStateChange(_state);
   }
 
   final AppSettingsService _settingsService;
   final AmbientAudioPlayerInterface _player;
+  final void Function(AmbientAudioState) _onStateChange;
 
-  // Estado interno
-  bool _isMuted = true; // Inicia silenciado por defecto
-  bool _isPausedByLifecycle = false;
-  ValleyTimePhase _currentTimePhase = ValleyTimePhase.day;
-  PrehispanicEmotion? _activeEmotionOverride;
-  AmbientAudioTrackConfig? _currentTrackConfig;
-  StreamController<bool>? _playingStateController;
+  late AmbientAudioState _state;
 
-  // ─── Getters públicos ───
+  AmbientAudioState get state => _state;
 
-  /// Indica si el audio está silenciado (mute activado).
-  bool get isMuted => _isMuted;
-
-  /// Indica si el audio está habilitado (equivalente a !isMuted).
-  bool get isAudioEnabled => !_isMuted;
-
-  /// Indica si hay audio reproduciéndose activamente.
-  bool get isPlaying => _player.isPlaying && !_isMuted && !_isPausedByLifecycle;
-
-  /// Fase horaria actual.
-  ValleyTimePhase get currentTimePhase => _currentTimePhase;
-
-  /// Clima emocional activo que sobrescribe la pista horaria.
-  PrehispanicEmotion? get activeEmotionOverride => _activeEmotionOverride;
-
-  /// Configuración de la pista que debería estar sonando ahora.
-  AmbientAudioTrackConfig? get currentTrackConfig => _currentTrackConfig;
-
-  /// Stream de cambios en el estado de reproducción (para UI).
-  Stream<bool> get playingStateStream {
-    _playingStateController ??= StreamController<bool>.broadcast();
-    return _playingStateController!.stream;
+  void _updateState(AmbientAudioState newState) {
+    _state = newState;
+    _onStateChange(_state);
   }
 
-  // ─── Inicialización y ciclo de vida ───
+  Future<void> _playCurrentTrack() async {
+    await _player.playLoop(_state.currentConfig.assetPath, volume: 1.0);
+  }
 
-  /// Inicializa el servicio (llamar al arranque de la app).
-  Future<void> initialize() async {
-    // El estado inicial ya se cargó en el constructor desde settings
-    // Si audioEnabled == true, iniciar reproducción de la pista actual
-    if (!_isMuted) {
+  Future<void> setAudioEnabled(bool enabled) async {
+    await _settingsService.setAudioEnabled(enabled);
+    final newMuted = !enabled;
+
+    if (enabled && !_state.isPausedByLifecycle) {
       await _playCurrentTrack();
+      _updateState(_state.copyWith(isMuted: newMuted, isPlaying: true));
+    } else {
+      await _player.stop();
+      _updateState(_state.copyWith(isMuted: newMuted, isPlaying: false));
+    }
+  }
+
+  Future<void> toggleMute() async {
+    await setAudioEnabled(!_settingsService.audioEnabled);
+  }
+
+  Future<void> updateAtmosphere({
+    ValleyTimePhase? timePhase,
+    PrehispanicEmotion? emotionOverride,
+    DateTime? now,
+  }) async {
+    final referenceTime = now ?? DateTime.now();
+    final newTimePhase = timePhase ?? ValleyTimePhase.fromHour(referenceTime.hour);
+    final newEmotionOverride = emotionOverride;
+
+    final newConfig = AmbientAudioTrackConfig(
+      activeEmotionOverride: newEmotionOverride,
+      timePhase: newTimePhase,
+    );
+
+    // Actualizar estado interno
+    _updateState(_state.copyWith(
+      currentTimePhase: newTimePhase,
+      currentEmotionOverride: newEmotionOverride,
+      currentConfig: newConfig,
+    ));
+
+    // Si el audio está activo y la app en primer plano, reproducir la nueva pista
+    if (!_state.isMuted && !_state.isPausedByLifecycle) {
+      await _playCurrentTrack();
+      _updateState(_state.copyWith(isPlaying: true));
     }
   }
 
@@ -97,176 +185,103 @@ class AmbientAudioService with WidgetsBindingObserver {
       case AppLifecycleState.inactive:
       case AppLifecycleState.hidden:
       case AppLifecycleState.detached:
-        _handleAppBackgrounded();
+        _updateState(_state.copyWith(isPausedByLifecycle: true, isPlaying: false));
+        _player.pause();
       case AppLifecycleState.resumed:
-        _handleAppForegrounded();
+        _updateState(_state.copyWith(isPausedByLifecycle: false));
+        if (!_state.isMuted) {
+          _playCurrentTrack();
+          _updateState(_state.copyWith(isPlaying: true));
+        }
     }
   }
 
-  void _handleAppBackgrounded() {
-    _isPausedByLifecycle = true;
-    // Pausar inmediatamente para que no suene nada en background
-    unawaited(_player.pause());
-    _notifyPlayingStateChanged();
+  Future<void> dispose() async {
+    WidgetsBinding.instance.removeObserver(this);
+    await _player.dispose();
+  }
+}
+
+/// Notifier de Riverpod que expone [AmbientAudioState] y notifica cambios.
+class AmbientAudioNotifier extends Notifier<AmbientAudioState> {
+  late final _AmbientAudioServiceImpl _impl;
+
+  @override
+  AmbientAudioState build() {
+    final settingsService = ref.watch(appSettingsServiceProvider);
+    // El player se puede sobrescribir en tests via ambientAudioPlayerProvider
+    final player = ref.watch(ambientAudioPlayerProvider);
+
+    _impl = _AmbientAudioServiceImpl(
+      settingsService: settingsService,
+      player: player,
+      onStateChange: (newState) {
+        if (ref.mounted) {
+          state = newState;
+        }
+      },
+    );
+
+    // Cleanup al desechar el provider
+    ref.onDispose(() => _impl.dispose());
+
+    return _impl.state;
   }
 
-  void _handleAppForegrounded() {
-    final wasPausedByLifecycle = _isPausedByLifecycle;
-    _isPausedByLifecycle = false;
-    // Reanudar solo si el audio está habilitado
-    if (!_isMuted) {
-      unawaited(_resumeIfNeeded(wasPausedByLifecycle));
-    }
-    _notifyPlayingStateChanged();
-  }
-
-  Future<void> _resumeIfNeeded(bool wasPausedByLifecycle) async {
-    if (_currentTrackConfig == null) return;
-
-    if (wasPausedByLifecycle) {
-      // Venimos de una pausa por ciclo de vida → resume (continúa desde pausa)
-      await _player.resume();
-    } else {
-      // Venimos de un mute/unmute o primera vez → playLoop (carga y reproduce)
-      await _player.playLoop(_currentTrackConfig!.assetPath);
-    }
-  }
-
-  // ─── Control de mute / audio enabled ───
-
-  /// Alterna el estado de mute (silencio ⇄ sonido).
-  ///
-  /// Persiste en AppSettingsService y sincroniza el reproductor inmediatamente.
-  Future<void> toggleMute() async {
-    // Si está silenciado (isMuted=true), queremos activar audio (enabled=true).
-    // Si está activo (isMuted=false), queremos silenciar (enabled=false).
-    // Por tanto: newEnabled = isMuted
-    final newEnabled = isMuted;
-    await setAudioEnabled(newEnabled);
-  }
+  /// Alterna el estado de silencio (mute).
+  Future<void> toggleMute() => _impl.toggleMute();
 
   /// Establece explícitamente si el audio está habilitado.
-  ///
-  /// Persiste en AppSettingsService y sincroniza el reproductor.
-  Future<void> setAudioEnabled(bool enabled) async {
-    _isMuted = !enabled;
-    await _settingsService.setAudioEnabled(enabled);
+  Future<void> setAudioEnabled(bool enabled) => _impl.setAudioEnabled(enabled);
 
-    if (enabled) {
-      // Activado: iniciar reproducción de la pista actual
-      await _playCurrentTrack();
-    } else {
-      // Desactivado: detener/pausar inmediatamente
-      await _player.stop();
-    }
-    _notifyPlayingStateChanged();
-  }
-
-  // ─── Actualización de atmósfera (hora + emoción) ───
-
-  /// Actualiza la atmósfera sonora según fase horaria y/o clima emocional.
-  ///
-  /// - [timePhase]: fase horaria (si null, se calcula desde [now] o DateTime.now())
-  /// - [emotionOverride]: emoción seleccionada en diario/valle (null = sin override)
-  /// - [now]: hora de referencia (para tests; por defecto DateTime.now())
-  ///
-  /// Si el audio está habilitado y la app está en primer plano, cambia a la
-  /// pista correspondiente si es distinta de la actual.
+  /// Actualiza la atmósfera (fase horaria y/o clima emocional).
   Future<void> updateAtmosphere({
     ValleyTimePhase? timePhase,
     PrehispanicEmotion? emotionOverride,
     DateTime? now,
-  }) async {
-    final referenceTime = now ?? DateTime.now();
-    final resolvedTimePhase = timePhase ?? ValleyTimePhase.fromHour(referenceTime.hour);
-
-    // Actualizar estado interno
-    _currentTimePhase = resolvedTimePhase;
-    _activeEmotionOverride = emotionOverride;
-
-    final newConfig = AmbientAudioTrackConfig(
-      timePhase: resolvedTimePhase,
-      activeEmotionOverride: emotionOverride,
-    );
-
-    // Si la pista no cambió, no hacer nada
-    if (_currentTrackConfig == newConfig) {
-      return;
-    }
-
-    _currentTrackConfig = newConfig;
-
-    // Solo cambiar pista si audio habilitado y app en foreground
-    if (!_isMuted && !_isPausedByLifecycle) {
-      await _playCurrentTrack();
-    }
-  }
-
-  /// Fuerza recálculo de la fase horaria desde la hora actual.
-  Future<void> refreshTimePhase() async {
-    await updateAtmosphere(now: DateTime.now());
-  }
-
-  // ─── Reproducción interna ───
-
-  Future<void> _playCurrentTrack() async {
-    if (_currentTrackConfig == null) return;
-
-    final assetPath = _currentTrackConfig!.assetPath;
-    await _player.playLoop(assetPath);
-    _notifyPlayingStateChanged();
-  }
-
-  void _notifyPlayingStateChanged() {
-    _playingStateController?.add(isPlaying);
-  }
-
-  // ─── Limpieza ───
-
-  /// Libera recursos del servicio.
-  Future<void> dispose() async {
-    WidgetsBinding.instance.removeObserver(this);
-    await _player.dispose();
-    await _playingStateController?.close();
-    _playingStateController = null;
-  }
+  }) => _impl.updateAtmosphere(
+        timePhase: timePhase,
+        emotionOverride: emotionOverride,
+        now: now,
+      );
 }
 
-/// Provider del servicio de audio ambiental (Riverpod).
-///
-/// Se inicializa perezosamente al primer uso. El AppSettingsService
-/// debe estar disponible (sobrescrito en main.dart).
-final ambientAudioServiceProvider = Provider<AmbientAudioService>((ref) {
-  final settingsService = ref.watch(appSettingsServiceProvider);
-  return AmbientAudioService(settingsService: settingsService);
+/// Provider del player de audio (permite sobrescribir en tests).
+final ambientAudioPlayerProvider = Provider<AmbientAudioPlayerInterface>((ref) {
+  return AudioplayersAmbientPlayer();
 });
 
-/// Provider del estado de mute (para UI reactiva).
-final ambientAudioMutedProvider = Provider<bool>((ref) {
-  final service = ref.watch(ambientAudioServiceProvider);
-  return service.isMuted;
+/// Provider del Notifier de audio ambiental (estado reactivo).
+final ambientAudioProvider = NotifierProvider<AmbientAudioNotifier, AmbientAudioState>(
+  AmbientAudioNotifier.new,
+);
+
+/// Provider de solo lectura para el estado de mute (para UI reactiva).
+final ambientAudioIsMutedProvider = Provider<bool>((ref) {
+  return ref.watch(ambientAudioProvider.select((s) => s.isMuted));
 });
 
-/// Provider del estado de reproducción (para UI reactiva).
-final ambientAudioPlayingProvider = StreamProvider<bool>((ref) {
-  final service = ref.watch(ambientAudioServiceProvider);
-  return service.playingStateStream;
+/// Provider de solo lectura para el estado de reproducción.
+final ambientAudioIsPlayingProvider = Provider<bool>((ref) {
+  return ref.watch(ambientAudioProvider.select((s) => s.isPlaying));
 });
 
-/// Provider de la fase horaria actual (para UI reactiva).
-final ambientAudioTimePhaseProvider = Provider<ValleyTimePhase>((ref) {
-  final service = ref.watch(ambientAudioServiceProvider);
-  return service.currentTimePhase;
+/// Provider de solo lectura para la configuración actual de pista.
+final ambientAudioCurrentConfigProvider = Provider<AmbientAudioTrackConfig>((ref) {
+  return ref.watch(ambientAudioProvider.select((s) => s.currentConfig));
 });
 
-/// Provider del clima emocional override actual (para UI reactiva).
-final ambientAudioEmotionOverrideProvider = Provider<PrehispanicEmotion?>((ref) {
-  final service = ref.watch(ambientAudioServiceProvider);
-  return service.activeEmotionOverride;
+/// Provider de solo lectura para la fase horaria actual.
+final ambientAudioCurrentTimePhaseProvider = Provider<ValleyTimePhase>((ref) {
+  return ref.watch(ambientAudioProvider.select((s) => s.currentTimePhase));
 });
 
-/// Provider de la configuración de pista actual (para UI reactiva).
-final ambientAudioTrackConfigProvider = Provider<AmbientAudioTrackConfig?>((ref) {
-  final service = ref.watch(ambientAudioServiceProvider);
-  return service.currentTrackConfig;
+/// Provider de solo lectura para el emotion override actual.
+final ambientAudioCurrentEmotionOverrideProvider = Provider<PrehispanicEmotion?>((ref) {
+  return ref.watch(ambientAudioProvider.select((s) => s.currentEmotionOverride));
+});
+
+/// Provider de solo lectura para saber si está pausado por ciclo de vida.
+final ambientAudioIsPausedByLifecycleProvider = Provider<bool>((ref) {
+  return ref.watch(ambientAudioProvider.select((s) => s.isPausedByLifecycle));
 });

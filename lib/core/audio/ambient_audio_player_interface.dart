@@ -1,27 +1,27 @@
 // Interfaz y implementaciones del reproductor de audio ambiental.
 //
-// Define un contrato limpio para reproducir bucles de audio,
-// con una implementación real (audioplayers) y un mock para tests.
+// Define un contrato limpio para reproducir bucles de audio ambiental,
+// con una implementación real (audioplayers) y una mock para tests.
 
+import 'package:audioplayers/audioplayers.dart' show AudioPlayer, ReleaseMode, PlayerState, AssetSource;
 import 'package:flutter/services.dart';
-import 'package:audioplayers/audioplayers.dart';
 
-/// Interfaz para el reproductor de audio ambiental en bucle.
+/// Interfaz para el reproductor de audio ambiental.
 ///
-/// Contrato mínimo: reproducir en loop, pausar, reanudar, detener y liberar.
+/// Métodos asíncronos que no lanzan excepciones por assets faltantes.
 abstract interface class AmbientAudioPlayerInterface {
-  /// Reproduce un asset de audio en bucle con el volumen dado.
+  /// Reproduce un asset de audio en bucle con el volumen especificado.
   ///
-  /// Debe manejar silenciosamente assets faltantes (no lanzar excepción).
+  /// Si el asset no existe en el bundle, falla silenciosamente (no lanza).
   Future<void> playLoop(String assetPath, {double volume = 1.0});
 
-  /// Pausa la reproducción actual (mantiene la posición).
+  /// Pausa la reproducción actual.
   Future<void> pause();
 
-  /// Reanuda la reproducción desde donde se pausó.
+  /// Reanuda la reproducción pausada.
   Future<void> resume();
 
-  /// Detiene la reproducción y reinicia la posición.
+  /// Detiene la reproducción y libera el recurso actual.
   Future<void> stop();
 
   /// Libera recursos del reproductor.
@@ -30,106 +30,84 @@ abstract interface class AmbientAudioPlayerInterface {
   /// Indica si hay audio reproduciéndose actualmente.
   bool get isPlaying;
 
-  /// Ruta del asset que se está reproduciendo (o se reprodujo por última vez).
+  /// Ruta del asset que se está reproduciendo (o se reproducía).
   String? get currentAssetPath;
 }
 
 /// Implementación real usando `package:audioplayers/audioplayers.dart`.
 ///
-/// Envuelve `AudioPlayer` en modo `ReleaseMode.loop`.
-/// Verifica la existencia del asset en el `rootBundle` antes de reproducir
-/// y captura cualquier excepción de asset faltante para degradarse limpiamente.
+/// Envuelve [AudioPlayer] en modo [ReleaseMode.loop].
+/// Verifica la existencia del asset en el rootBundle antes de reproducir
+/// para nunca fallar si assets/audio/ solo tiene .gitkeep.
 class AudioplayersAmbientPlayer implements AmbientAudioPlayerInterface {
-  final AudioPlayer _player;
-  String? _currentAssetPath;
-  bool _isPlaying = false;
-  bool _disposed = false;
+  AudioplayersAmbientPlayer();
 
-  AudioplayersAmbientPlayer() : _player = AudioPlayer();
+  // Importación diferida para evitar dependencia en tests mock
+  late final AudioPlayer _player = AudioPlayer();
 
   @override
   Future<void> playLoop(String assetPath, {double volume = 1.0}) async {
-    if (_disposed) return;
-
-    // Verificar si el asset existe en el bundle antes de intentar reproducir.
-    // Si no existe, degradarse silenciosamente sin lanzar excepción.
-    final assetExists = await _checkAssetExists(assetPath);
+    // Verificar que el asset existe en el bundle antes de intentar reproducir
+    final assetExists = await _assetExistsInBundle(assetPath);
     if (!assetExists) {
-      _currentAssetPath = assetPath;
-      _isPlaying = false;
+      // Asset no existe: falla silenciosamente, no lanza excepción
       return;
     }
 
     try {
-      await _player.setSourceAsset(assetPath);
       await _player.setReleaseMode(ReleaseMode.loop);
       await _player.setVolume(volume.clamp(0.0, 1.0));
-      await _player.resume();
-      _currentAssetPath = assetPath;
-      _isPlaying = true;
+      await _player.play(AssetSource(assetPath));
     } catch (_) {
-      // Cualquier error de reproducción (asset corrupto, permisos, etc.)
-      // se captura silenciosamente para no romper el estado de la app.
-      _isPlaying = false;
+      // Cualquier error de reproducción (formato, permisos, etc.) se ignora
+      // para mantener la estabilidad de la app.
     }
   }
 
   @override
   Future<void> pause() async {
-    if (_disposed) return;
     try {
       await _player.pause();
-      _isPlaying = false;
     } catch (_) {
-      _isPlaying = false;
+      // Ignorar errores
     }
   }
 
   @override
   Future<void> resume() async {
-    if (_disposed) return;
     try {
       await _player.resume();
-      _isPlaying = true;
     } catch (_) {
-      _isPlaying = false;
+      // Ignorar errores
     }
   }
 
   @override
   Future<void> stop() async {
-    if (_disposed) return;
     try {
       await _player.stop();
-      _isPlaying = false;
     } catch (_) {
-      _isPlaying = false;
+      // Ignorar errores
     }
   }
 
   @override
   Future<void> dispose() async {
-    if (_disposed) return;
-    _disposed = true;
     try {
       await _player.dispose();
     } catch (_) {
-      // Ignorar errores al liberar
+      // Ignorar errores
     }
-    _isPlaying = false;
-    _currentAssetPath = null;
   }
 
   @override
-  bool get isPlaying => _isPlaying;
+  bool get isPlaying => _player.state == PlayerState.playing;
 
   @override
-  String? get currentAssetPath => _currentAssetPath;
+  String? get currentAssetPath => null; // audioplayers no expone el source actual fácilmente
 
-  /// Verifica si un asset existe en el rootBundle.
-  ///
-  /// Retorna `false` silenciosamente si no existe o hay error.
-  Future<bool> _checkAssetExists(String assetPath) async {
+  /// Verifica si un asset existe en el bundle de la app.
+  Future<bool> _assetExistsInBundle(String assetPath) async {
     try {
       await rootBundle.load(assetPath);
       return true;
@@ -139,61 +117,44 @@ class AudioplayersAmbientPlayer implements AmbientAudioPlayerInterface {
   }
 }
 
-/// Implementación en memoria para tests unitarios.
+/// Implementación mock en memoria para tests unitarios.
 ///
 /// Registra llamadas y estado sin reproducir audio real.
-/// Incluye flag `simulateMissingAsset` para verificar manejo de assets faltantes.
+/// Incluye flag [simulateMissingAsset] para probar manejo de assets faltantes.
 class MockAmbientAudioPlayer implements AmbientAudioPlayerInterface {
-  String? _currentAssetPath;
-  bool _isPlaying = false;
-  bool _disposed = false;
+  MockAmbientAudioPlayer({this.simulateMissingAsset = false});
 
-  // Contadores para verificación en tests
-  int playCallCount = 0;
-  int pauseCallCount = 0;
-  int stopCallCount = 0;
-  int resumeCallCount = 0;
-  int disposeCallCount = 0;
-
-  /// Si `true`, `playLoop` simulará que el asset no existe.
+  /// Si true, playLoop actuará como si el asset no existiera.
   final bool simulateMissingAsset;
 
-  /// Assets que se consideran "existentes" para el mock.
-  final Set<String> availableAssets;
-
-  MockAmbientAudioPlayer({
-    this.simulateMissingAsset = false,
-    this.availableAssets = const {},
-  });
+  bool _isPlaying = false;
+  String? _currentAssetPath;
+  int _playCallCount = 0;
+  int _pauseCallCount = 0;
+  int _stopCallCount = 0;
+  int _resumeCallCount = 0;
+  int _disposeCallCount = 0;
 
   @override
   Future<void> playLoop(String assetPath, {double volume = 1.0}) async {
-    if (_disposed) return;
-    playCallCount++;
-    _currentAssetPath = assetPath;
-
-    final assetExists = !simulateMissingAsset &&
-        (availableAssets.isEmpty || availableAssets.contains(assetPath));
-
-    if (!assetExists) {
-      _isPlaying = false;
+    _playCallCount++;
+    if (simulateMissingAsset) {
+      // Simula asset faltante: no cambia estado
       return;
     }
-
     _isPlaying = true;
+    _currentAssetPath = assetPath;
   }
 
   @override
   Future<void> pause() async {
-    if (_disposed) return;
-    pauseCallCount++;
+    _pauseCallCount++;
     _isPlaying = false;
   }
 
   @override
   Future<void> resume() async {
-    if (_disposed) return;
-    resumeCallCount++;
+    _resumeCallCount++;
     if (_currentAssetPath != null) {
       _isPlaying = true;
     }
@@ -201,16 +162,14 @@ class MockAmbientAudioPlayer implements AmbientAudioPlayerInterface {
 
   @override
   Future<void> stop() async {
-    if (_disposed) return;
-    stopCallCount++;
+    _stopCallCount++;
     _isPlaying = false;
+    _currentAssetPath = null;
   }
 
   @override
   Future<void> dispose() async {
-    if (_disposed) return;
-    disposeCallCount++;
-    _disposed = true;
+    _disposeCallCount++;
     _isPlaying = false;
     _currentAssetPath = null;
   }
@@ -221,15 +180,29 @@ class MockAmbientAudioPlayer implements AmbientAudioPlayerInterface {
   @override
   String? get currentAssetPath => _currentAssetPath;
 
-  /// Reinicia contadores y estado (útil entre tests).
+  /// Contador de llamadas a playLoop.
+  int get playCallCount => _playCallCount;
+
+  /// Contador de llamadas a pause.
+  int get pauseCallCount => _pauseCallCount;
+
+  /// Contador de llamadas a stop.
+  int get stopCallCount => _stopCallCount;
+
+  /// Contador de llamadas a resume.
+  int get resumeCallCount => _resumeCallCount;
+
+  /// Contador de llamadas a dispose.
+  int get disposeCallCount => _disposeCallCount;
+
+  /// Reinicia todos los contadores y estado (útil entre tests).
   void reset() {
-    _currentAssetPath = null;
     _isPlaying = false;
-    _disposed = false;
-    playCallCount = 0;
-    pauseCallCount = 0;
-    stopCallCount = 0;
-    resumeCallCount = 0;
-    disposeCallCount = 0;
+    _currentAssetPath = null;
+    _playCallCount = 0;
+    _pauseCallCount = 0;
+    _stopCallCount = 0;
+    _resumeCallCount = 0;
+    _disposeCallCount = 0;
   }
 }
