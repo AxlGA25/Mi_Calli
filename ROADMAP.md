@@ -42,7 +42,7 @@
 ## Fase 3: Etapa 2 - Gamificación, Fuego Sagrado, Chinampa y Tonalpohualli
 - [x] **3.1.** Implementar `SacredFireAndEvolutionService`: 5 niveles de Quetzalcóatl, racha con colores (Naranja, Dorado, Turquesa) y *Manto de Xólotl* con escudos que empiezan en 1, suben $+1$ por cada 7 días de racha y tienen máximo 2, usando la fecha local `YYYY-MM-DD`.
   *Listo cuando:* pruebas cubren racha continua, 1 día perdido con y sin escudo, reinicio compasivo, recarga de escudo y tope de 2.
-- [ ] **3.2.** Implementar `ChinampaController`: plantar en 4 slots y regar al guardar una entrada ($+1$, o $+2$ por emoción de afinidad), con `waterings_needed` tomado del catálogo.
+- [x] **3.2.** Implementar `ChinampaController`: plantar en 4 slots y regar al guardar una entrada ($+1$, o $+2$ por emoción de afinidad), con `waterings_needed` tomado del catálogo.
   *Listo cuando:* pruebas cubren riego normal, riego doble y floración.
 - [ ] **3.3.** Implementar visitas y reliquias de Tláloc, Xochiquétzal y Xólotl (condiciones de la Etapa 2, guardadas en `user_inventory`).
   *Listo cuando:* pruebas muestran que cada condición desbloquea su reliquia una sola vez.
