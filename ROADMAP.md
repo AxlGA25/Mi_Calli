@@ -60,7 +60,7 @@
   *Listo cuando:* sin autenticación no se ve el contenido, y con ella se abre un día con entrada.
 - [x] **4.5.** Construir `AltarOfCalmModal`: respiración $4-4-6$ con vibración háptica y apoyo visual (texto "inhala/sostén/exhala"), 3 ciclos que cuentan para el Fuego Sagrado, y configuración de la Red de Apoyo Dual.
   *Listo cuando:* completar 3 ciclos suma el día de racha y los dos botones de apoyo funcionan.
-- [ ] **4.6.** Construir `SettingsScreen` (sonido, reducir movimiento, candado de la app, recordatorio, contacto de confianza, aviso y privacidad, exportar/importar diario) y la pantalla "Aviso y privacidad". La sección de respaldo en la nube se agrega en la 5.3.
+- [x] **4.6.** Construir `SettingsScreen` (sonido, reducir movimiento, candado de la app, recordatorio, contacto de confianza, aviso y privacidad, exportar/importar diario) y la pantalla "Aviso y privacidad". La sección de respaldo en la nube se agrega en la 5.3.
   *Listo cuando:* cada ajuste se guarda y se aplica de inmediato, y la pantalla de aviso muestra los textos de `legal_texts.dart`.
 - [ ] **4.7.** Implementar `ReminderService` con `flutter_local_notifications`: recordatorio diario opcional a la hora elegida, mensaje genérico, permiso pedido solo al activarlo.
   *Listo cuando:* activarlo pide permiso y programa la notificación, desactivarlo la cancela, y el texto no menciona racha ni contenido.
