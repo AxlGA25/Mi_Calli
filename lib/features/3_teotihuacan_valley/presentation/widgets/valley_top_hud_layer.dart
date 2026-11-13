@@ -11,8 +11,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:mi_calli/core/audio/ambient_audio_service.dart';
 import 'package:mi_calli/core/constants/app_colors.dart';
-import 'package:mi_calli/core/security/support_network_modal.dart';
 import 'package:mi_calli/core/settings/app_settings_provider.dart';
+import 'package:mi_calli/features/3_teotihuacan_valley/presentation/widgets/altar_of_calm_modal.dart';
 
 /// Capa del HUD superior con 3 botones flotantes.
 class ValleyTopHudLayer extends ConsumerWidget {
@@ -94,10 +94,10 @@ class ValleyTopHudLayer extends ConsumerWidget {
             right: 16,
             child: _HudButton(
               key: const ValueKey('valley_hud_sos_button'),
-              semanticsLabel: 'Red de apoyo y ayuda inmediata',
+              semanticsLabel: 'Altar de Calma: respiración y red de apoyo',
               onTap: () {
                 HapticFeedback.mediumImpact();
-                SupportNetworkModal.show(context);
+                AltarOfCalmModal.show(context);
               },
               backgroundColor: AppColors.rojoGrana.withValues(alpha: 0.85),
               borderColor: AppColors.oro.withValues(alpha: 0.5),

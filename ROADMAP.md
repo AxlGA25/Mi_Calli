@@ -58,7 +58,7 @@
   *Listo cuando:* cada zona navega a su destino, tiene área de toque de al menos $48 \times 48$ px y etiqueta para lectores de pantalla.
 - [x] **4.4.** Construir `PrivateCodexScreen` con `local_auth` y la cuadrícula de Calendario Agrícola (detalle en pergamino). Al terminar, elimina el `DiaryHistoryScreen` provisional de la Fase 2.
   *Listo cuando:* sin autenticación no se ve el contenido, y con ella se abre un día con entrada.
-- [ ] **4.5.** Construir `AltarOfCalmModal`: respiración $4-4-6$ con vibración háptica y apoyo visual (texto "inhala/sostén/exhala"), 3 ciclos que cuentan para el Fuego Sagrado, y configuración de la Red de Apoyo Dual.
+- [x] **4.5.** Construir `AltarOfCalmModal`: respiración $4-4-6$ con vibración háptica y apoyo visual (texto "inhala/sostén/exhala"), 3 ciclos que cuentan para el Fuego Sagrado, y configuración de la Red de Apoyo Dual.
   *Listo cuando:* completar 3 ciclos suma el día de racha y los dos botones de apoyo funcionan.
 - [ ] **4.6.** Construir `SettingsScreen` (sonido, reducir movimiento, candado de la app, recordatorio, contacto de confianza, aviso y privacidad, exportar/importar diario) y la pantalla "Aviso y privacidad". La sección de respaldo en la nube se agrega en la 5.3.
   *Listo cuando:* cada ajuste se guarda y se aplica de inmediato, y la pantalla de aviso muestra los textos de `legal_texts.dart`.
