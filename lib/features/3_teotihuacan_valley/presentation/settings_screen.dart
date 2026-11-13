@@ -8,6 +8,7 @@
 // 5. Privacidad y Legal
 //
 // Usa AppSettingsProvider para reactividad y navega a PrivacyAndLegalScreen.
+// Integra ReminderService para recordatorios diarios (Tarea 4.7).
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -15,6 +16,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import 'package:mi_calli/core/constants/app_colors.dart';
 import 'package:mi_calli/core/constants/legal_texts.dart';
+import 'package:mi_calli/core/notifications/reminder_service.dart';
 import 'package:mi_calli/core/settings/app_settings_provider.dart';
 import 'package:mi_calli/features/3_teotihuacan_valley/presentation/privacy_and_legal_screen.dart';
 
@@ -113,6 +115,7 @@ class SettingsScreen extends ConsumerWidget {
             _buildSectionHeader(context, 'Notificaciones', Icons.notifications_outlined),
             _buildSettingsTile(
               context,
+              key: const ValueKey('settings_tile_recordatorio'),
               icon: Icons.schedule_rounded,
               title: 'Recordatorio Diario',
               subtitle: settings.reminderEnabled
@@ -342,23 +345,30 @@ class SettingsScreen extends ConsumerWidget {
   }
 
   void _onReminderToggle(BuildContext context, WidgetRef ref, bool value) async {
+    final reminderService = ref.read(reminderServiceProvider);
     if (value) {
       // Al activar, pedir permiso de notificaciones y abrir selector de hora
-      final granted = await _requestNotificationPermission();
-      if (granted && context.mounted) {
-        await _pickReminderTime(context, ref);
-      } else if (context.mounted) {
+      final currentSettings = ref.read(appSettingsProvider);
+      int hour = 20;
+      int minute = 0;
+      if (currentSettings.reminderTime != null) {
+        hour = int.parse(currentSettings.reminderTime!.split(':')[0]);
+        minute = int.parse(currentSettings.reminderTime!.split(':')[1]);
+      }
+      final success = await reminderService.enableReminder(hour: hour, minute: minute);
+      if (!success && context.mounted) {
         // Si no concede permiso, revertir el switch
-        ref.read(appSettingsProvider.notifier).setReminderEnabled(false);
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Se necesita permiso de notificaciones para los recordatorios'),
             behavior: SnackBarBehavior.floating,
           ),
         );
+      } else if (success && context.mounted) {
+        await _pickReminderTime(context, ref);
       }
     } else {
-      await ref.read(appSettingsProvider.notifier).setReminderEnabled(false);
+      await reminderService.disableReminder();
     }
   }
 
@@ -369,12 +379,6 @@ class SettingsScreen extends ConsumerWidget {
     } else {
       _onReminderToggle(context, ref, true);
     }
-  }
-
-  Future<bool> _requestNotificationPermission() async {
-    // TODO: Implementar con flutter_local_notifications cuando se añada en Tarea 4.7
-    // Por ahora retornamos true para permitir el flujo en desarrollo
-    return true;
   }
 
   Future<void> _pickReminderTime(BuildContext context, WidgetRef ref) async {
@@ -412,8 +416,11 @@ class SettingsScreen extends ConsumerWidget {
     );
 
     if (picked != null && context.mounted) {
-      final timeString = '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
-      await ref.read(appSettingsProvider.notifier).setReminderTime(timeString);
+      final reminderService = ref.read(reminderServiceProvider);
+      await reminderService.updateReminderTime(
+        hour: picked.hour,
+        minute: picked.minute,
+      );
     }
   }
 

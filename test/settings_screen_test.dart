@@ -1,4 +1,4 @@
-// Pruebas para SettingsScreen (Tarea 4.6).
+// Pruebas para SettingsScreen (Tarea 4.6 y 4.7).
 //
 // Cubre las 5 secciones:
 // 1. General
@@ -8,16 +8,69 @@
 // 5. Privacidad y Legal
 //
 // Verifica reactividad con AppSettingsProvider, navegación y formularios.
+// Inyecta FakeLocalNotificationsGateway para tests deterministas.
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:mi_calli/core/notifications/reminder_service.dart';
 import 'package:mi_calli/core/settings/app_settings_provider.dart';
 import 'package:mi_calli/core/settings/app_settings_service.dart';
 import 'package:mi_calli/features/3_teotihuacan_valley/presentation/settings_screen.dart';
 import 'package:mi_calli/features/3_teotihuacan_valley/presentation/privacy_and_legal_screen.dart';
+
+/// Fake in-memory implementation of LocalNotificationsGateway for testing.
+class FakeLocalNotificationsGateway implements LocalNotificationsGateway {
+  FakeLocalNotificationsGateway({this.permissionGranted = true});
+
+  final bool permissionGranted;
+  bool initialized = false;
+  int requestPermissionCalls = 0;
+  int scheduledId = -1;
+  int scheduledHour = -1;
+  int scheduledMinute = -1;
+  String? scheduledTitle;
+  String? scheduledBody;
+  final List<int> cancelledIds = [];
+
+  @override
+  Future<void> initialize() async {
+    initialized = true;
+  }
+
+  @override
+  Future<bool> requestPermission() async {
+    requestPermissionCalls++;
+    return permissionGranted;
+  }
+
+  @override
+  Future<void> scheduleDaily({
+    required int id,
+    required String title,
+    required String body,
+    required int hour,
+    required int minute,
+  }) async {
+    scheduledId = id;
+    scheduledTitle = title;
+    scheduledBody = body;
+    scheduledHour = hour;
+    scheduledMinute = minute;
+  }
+
+  @override
+  Future<void> cancel(int id) async {
+    cancelledIds.add(id);
+  }
+
+  @override
+  Future<void> cancelAll() async {
+    // No-op for tests
+  }
+}
 
 void main() {
   setUpAll(() {
@@ -27,14 +80,17 @@ void main() {
   group('SettingsScreen', () {
     late ProviderContainer container;
     late AppSettingsService settingsService;
+    late FakeLocalNotificationsGateway fakeGateway;
 
     setUp(() async {
       SharedPreferences.setMockInitialValues({});
       settingsService = await AppSettingsService.create();
+      fakeGateway = FakeLocalNotificationsGateway(permissionGranted: true);
 
       container = ProviderContainer(
         overrides: [
           appSettingsServiceProvider.overrideWithValue(settingsService),
+          localNotificationsGatewayProvider.overrideWithValue(fakeGateway),
         ],
       );
     });
@@ -154,6 +210,41 @@ void main() {
         expect(find.text('Activado a las 18:30'), findsOneWidget);
         expect(find.text('Hora del Recordatorio'), findsOneWidget);
         expect(find.text('18:30'), findsOneWidget);
+      });
+
+      testWidgets('Activar recordatorio con permiso concedido programa notificación', (tester) async {
+        await openSettings(tester);
+
+        // Tap en el switch para activar (buscar el Switch widget por ValueKey del tile)
+        final switchFinder = find.descendant(
+          of: find.byKey(const ValueKey('settings_tile_recordatorio')).first,
+          matching: find.byType(Switch),
+        );
+        await tester.tap(switchFinder);
+        await tester.pumpAndSettle();
+
+        // Debería abrir el selector de hora, pero el test no puede interactuar con él
+        // Verificamos que se intentó programar la notificación
+        expect(fakeGateway.requestPermissionCalls, equals(1));
+        expect(fakeGateway.scheduledId, equals(reminderNotificationId));
+      });
+
+      testWidgets('Desactivar recordatorio cancela la notificación', (tester) async {
+        // Primero activar
+        await settingsService.setReminderEnabled(true);
+        await settingsService.setReminderTime('18:30');
+        await openSettings(tester);
+
+        // Tap en el switch para desactivar
+        final switchFinder = find.descendant(
+          of: find.byKey(const ValueKey('settings_tile_recordatorio')).first,
+          matching: find.byType(Switch),
+        );
+        await tester.tap(switchFinder);
+        await tester.pumpAndSettle();
+
+        expect(fakeGateway.cancelledIds, contains(reminderNotificationId));
+        expect(settingsService.reminderEnabled, isFalse);
       });
     });
 
@@ -342,6 +433,69 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Activado'), findsAtLeastNWidgets(1));
+    });
+  });
+
+  group('SettingsScreen con permiso denegado', () {
+    late ProviderContainer container;
+    late AppSettingsService settingsService;
+    late FakeLocalNotificationsGateway fakeGateway;
+
+    setUp(() async {
+      SharedPreferences.setMockInitialValues({});
+      settingsService = await AppSettingsService.create();
+      fakeGateway = FakeLocalNotificationsGateway(permissionGranted: false);
+
+      container = ProviderContainer(
+        overrides: [
+          appSettingsServiceProvider.overrideWithValue(settingsService),
+          localNotificationsGatewayProvider.overrideWithValue(fakeGateway),
+        ],
+      );
+    });
+
+    tearDown(() {
+      container.dispose();
+    });
+
+    Future<void> openSettings(WidgetTester tester) async {
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: const MaterialApp(
+            home: SettingsScreen(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    Future<void> tapTile(WidgetTester tester, String title) async {
+      final tile = find.ancestor(
+        of: find.text(title).first,
+        matching: find.byWidgetPredicate((widget) => widget is InkWell),
+      );
+      await tester.ensureVisible(tile);
+      await tester.tap(tile);
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('Activar recordatorio con permiso denegado muestra SnackBar y mantiene switch en false', (tester) async {
+      await openSettings(tester);
+
+      expect(find.text('Desactivado'), findsAtLeastNWidgets(1));
+
+      // Tap en el tile del recordatorio para activarlo
+      await tapTile(tester, 'Recordatorio Diario');
+
+      // Verificar que se pidió permiso
+      expect(fakeGateway.requestPermissionCalls, equals(1));
+      // No se debe programar notificación
+      expect(fakeGateway.scheduledId, equals(-1));
+      // reminderEnabled debe seguir false
+      expect(settingsService.reminderEnabled, isFalse);
+      // Debe aparecer SnackBar
+      expect(find.text('Se necesita permiso de notificaciones para los recordatorios'), findsOneWidget);
     });
   });
 }

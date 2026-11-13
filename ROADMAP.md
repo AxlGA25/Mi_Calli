@@ -62,7 +62,7 @@
   *Listo cuando:* completar 3 ciclos suma el día de racha y los dos botones de apoyo funcionan.
 - [x] **4.6.** Construir `SettingsScreen` (sonido, reducir movimiento, candado de la app, recordatorio, contacto de confianza, aviso y privacidad, exportar/importar diario) y la pantalla "Aviso y privacidad". La sección de respaldo en la nube se agrega en la 5.3.
   *Listo cuando:* cada ajuste se guarda y se aplica de inmediato, y la pantalla de aviso muestra los textos de `legal_texts.dart`.
-- [ ] **4.7.** Implementar `ReminderService` con `flutter_local_notifications`: recordatorio diario opcional a la hora elegida, mensaje genérico, permiso pedido solo al activarlo.
+- [x] **4.7.** Implementar `ReminderService` con `flutter_local_notifications`: recordatorio diario opcional a la hora elegida, mensaje genérico, permiso pedido solo al activarlo.
   *Listo cuando:* activarlo pide permiso y programa la notificación, desactivarlo la cancela, y el texto no menciona racha ni contenido.
 - [ ] **4.8.** Implementar `DiaryBackupService`: exportar a archivo `.calli` cifrado con contraseña del usuario (4 tablas locales), compartirlo con `share_plus`, e importarlo con `file_picker` fusionando por `id`.
   *Listo cuando:* una prueba exporta, importa en una base vacía y recupera las mismas entradas; con contraseña incorrecta la importación falla sin dañar datos; el archivo no contiene texto legible.
