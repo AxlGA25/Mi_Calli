@@ -56,7 +56,7 @@
   *Listo cuando:* el cielo cambia según la hora del dispositivo.
 - [x] **4.3.** Agregar las zonas táctiles (Quetzalcóatl, Chinampa, Brasero, Templo del Códice) y el HUD de tres botones (audio, Ajustes, Caracol SOS), con `Semantics` en cada uno. Los destinos que aún no existan pueden ser pantallas vacías.
   *Listo cuando:* cada zona navega a su destino, tiene área de toque de al menos $48 \times 48$ px y etiqueta para lectores de pantalla.
-- [ ] **4.4.** Construir `PrivateCodexScreen` con `local_auth` y la cuadrícula de Calendario Agrícola (detalle en pergamino). Al terminar, elimina el `DiaryHistoryScreen` provisional de la Fase 2.
+- [x] **4.4.** Construir `PrivateCodexScreen` con `local_auth` y la cuadrícula de Calendario Agrícola (detalle en pergamino). Al terminar, elimina el `DiaryHistoryScreen` provisional de la Fase 2.
   *Listo cuando:* sin autenticación no se ve el contenido, y con ella se abre un día con entrada.
 - [ ] **4.5.** Construir `AltarOfCalmModal`: respiración $4-4-6$ con vibración háptica y apoyo visual (texto "inhala/sostén/exhala"), 3 ciclos que cuentan para el Fuego Sagrado, y configuración de la Red de Apoyo Dual.
   *Listo cuando:* completar 3 ciclos suma el día de racha y los dos botones de apoyo funcionan.

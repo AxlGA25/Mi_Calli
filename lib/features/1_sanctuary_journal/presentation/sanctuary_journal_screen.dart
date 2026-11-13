@@ -25,7 +25,7 @@ import 'package:mi_calli/features/1_sanctuary_journal/data/diary_repository_prov
 import 'package:mi_calli/features/1_sanctuary_journal/models/diary_entry.dart';
 import 'package:mi_calli/features/1_sanctuary_journal/models/prehispanic_emotion.dart';
 import 'package:mi_calli/features/1_sanctuary_journal/models/wisdom_feather.dart';
-import 'package:mi_calli/features/1_sanctuary_journal/presentation/diary_history_screen.dart';
+import 'package:mi_calli/features/1_sanctuary_journal/presentation/private_codex_screen.dart';
 import 'package:mi_calli/features/1_sanctuary_journal/presentation/emotion_gradient_background.dart';
 import 'package:mi_calli/features/1_sanctuary_journal/presentation/emotion_weather_selector.dart';
 
@@ -309,12 +309,12 @@ class _SanctuaryJournalScreenState extends ConsumerState<SanctuaryJournalScreen>
     SupportNetworkModal.show(context);
   }
 
-  /// Navega a la pantalla provisional de historial de entradas.
+  /// Navega al Códice Privado (calendario agrícola con autenticación biométrica).
   void _onMisEntradas() {
     if (!mounted) return;
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => const DiaryHistoryScreen(),
+        builder: (_) => const PrivateCodexScreen(),
       ),
     );
   }

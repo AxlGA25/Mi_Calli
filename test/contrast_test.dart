@@ -22,8 +22,8 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:mi_calli/core/constants/app_colors.dart';
 import 'package:mi_calli/features/1_sanctuary_journal/models/prehispanic_emotion.dart';
-import 'package:mi_calli/features/1_sanctuary_journal/presentation/diary_history_screen.dart';
 import 'package:mi_calli/features/1_sanctuary_journal/presentation/emotion_weather_selector.dart';
+import 'package:mi_calli/features/1_sanctuary_journal/presentation/private_codex_screen.dart';
 import 'package:mi_calli/features/1_sanctuary_journal/presentation/sanctuary_journal_screen.dart';
 
 /// Calcula la luminancia relativa de un color (sRGB -> lineal -> luminancia).
@@ -293,248 +293,245 @@ void main() {
     // El test de arriba usa obsidiana para el botón, no feather.color.
   });
 
-  group('Contraste WCAG 4.5:1 - Botón "Mis entradas" (SanctuaryJournalScreen)', () {
-    const misEntradasBgColor =
-        SanctuaryJournalContrastConstants.misEntradasBgColor;
-    const misEntradasTextColor =
-        SanctuaryJournalContrastConstants.misEntradasTextColor;
+  group('Contraste WCAG 4.5:1 - PrivateCodexScreen (Códice Privado)', () {
+    // Constantes desde PrivateCodexContrastConstants
+    const vaultBgColor = PrivateCodexContrastConstants.vaultBgColor;
+    const vaultTitleColor = PrivateCodexContrastConstants.vaultTitleColor;
+    const vaultSubtitleColor = PrivateCodexContrastConstants.vaultSubtitleColor;
+    const vaultSubtitleAlpha = PrivateCodexContrastConstants.vaultSubtitleAlpha;
+    const unlockButtonBgColor = PrivateCodexContrastConstants.unlockButtonBgColor;
+    const unlockButtonTextColor = PrivateCodexContrastConstants.unlockButtonTextColor;
+    const backButtonColor = PrivateCodexContrastConstants.backButtonColor;
+    const backButtonAlpha = PrivateCodexContrastConstants.backButtonAlpha;
 
-    // El botón "Mis entradas" está en la esquina superior derecha, sobre el gradiente
-    // de emoción. Tiene fondo blanco alpha 0.9 y texto obsidiana.
-    for (final emotion in PrehispanicEmotion.values) {
-      final gradient = _gradientForEmotion(emotion);
-      final emotionName = emotion.id;
+    const headerBgColor = PrivateCodexContrastConstants.headerBgColor;
+    const headerTitleColor = PrivateCodexContrastConstants.headerTitleColor;
+    const headerIconColor = PrivateCodexContrastConstants.headerIconColor;
+    const headerIconAlpha = PrivateCodexContrastConstants.headerIconAlpha;
 
-      test(
-        'boton_mis_entradas ($emotionName): obsidiana vs blanco alpha 0.9 sobre gradiente >= 4.5:1',
-        () {
-          final ratio = _minContrastOnGradient(
-            textColor: misEntradasTextColor,
-            overlayColor: misEntradasBgColor,
-            gradient: gradient,
-          );
-          expect(
-            ratio,
-            greaterThanOrEqualTo(4.5),
-            reason:
-                'boton_mis_entradas ($emotionName): contraste mínimo ${ratio.toStringAsFixed(2)}:1, mínimo 4.5:1',
-          );
-        },
-      );
-    }
-  });
+    const monthSelectorBgColor = PrivateCodexContrastConstants.monthSelectorBgColor;
+    const monthSelectorTextColor = PrivateCodexContrastConstants.monthSelectorTextColor;
+    const monthSelectorBorderColor = PrivateCodexContrastConstants.monthSelectorBorderColor;
+    const monthSelectorBorderAlpha = PrivateCodexContrastConstants.monthSelectorBorderAlpha;
 
-  group('Contraste WCAG 4.5:1 - DiaryHistoryScreen', () {
-    // Constantes desde DiaryHistoryContrastConstants
-    const appBarBgColor = DiaryHistoryContrastConstants.appBarBgColor;
-    const appBarTitleColor = DiaryHistoryContrastConstants.appBarTitleColor;
-    const appBarIconColor = DiaryHistoryContrastConstants.appBarIconColor;
-    const entryCardBgColor = DiaryHistoryContrastConstants.entryCardBgColor;
-    const entryDateTimeColor = DiaryHistoryContrastConstants.entryDateTimeColor;
-    const entryEmotionDeityColor = DiaryHistoryContrastConstants.entryEmotionDeityColor;
-    const entryEmotionLabelColor = DiaryHistoryContrastConstants.entryEmotionLabelColor;
-    const entryEmotionLabelAlpha = DiaryHistoryContrastConstants.entryEmotionLabelAlpha;
-    const entryFeatherNameColor = DiaryHistoryContrastConstants.entryFeatherNameColor;
-    const entryFeatherMessageColor = DiaryHistoryContrastConstants.entryFeatherMessageColor;
-    const entryFeatherMessageAlpha = DiaryHistoryContrastConstants.entryFeatherMessageAlpha;
-    const entryDividerColor = DiaryHistoryContrastConstants.entryDividerColor;
-    const entryDividerAlpha = DiaryHistoryContrastConstants.entryDividerAlpha;
-    const entryContentColor = DiaryHistoryContrastConstants.entryContentColor;
-    const entryContentAlpha = DiaryHistoryContrastConstants.entryContentAlpha;
-    const emptyStateIconColor = DiaryHistoryContrastConstants.emptyStateIconColor;
-    const emptyStateIconAlpha = DiaryHistoryContrastConstants.emptyStateIconAlpha;
-    const emptyStateTextColor = DiaryHistoryContrastConstants.emptyStateTextColor;
-    const emptyStateTextAlpha = DiaryHistoryContrastConstants.emptyStateTextAlpha;
-    const errorIconColor = DiaryHistoryContrastConstants.errorIconColor;
-    const errorTitleColor = DiaryHistoryContrastConstants.errorTitleColor;
-    const errorMessageColor = DiaryHistoryContrastConstants.errorMessageColor;
-    const errorMessageAlpha = DiaryHistoryContrastConstants.errorMessageAlpha;
-    const loadingColor = DiaryHistoryContrastConstants.loadingColor;
-    const featherErrorColor = DiaryHistoryContrastConstants.featherErrorColor;
-    const featherErrorAlpha = DiaryHistoryContrastConstants.featherErrorAlpha;
+    const filterChipSelectedBgColor = PrivateCodexContrastConstants.filterChipSelectedBgColor;
+    const filterChipSelectedTextColor = PrivateCodexContrastConstants.filterChipSelectedTextColor;
+    const filterChipUnselectedBgColor = PrivateCodexContrastConstants.filterChipUnselectedBgColor;
+    const filterChipUnselectedTextColor = PrivateCodexContrastConstants.filterChipUnselectedTextColor;
+    const filterChipUnselectedTextAlpha = PrivateCodexContrastConstants.filterChipUnselectedTextAlpha;
 
-    // AppBar - fondo sólido (pergaminoClaro)
-    test('diaryhistory_appbar_titulo: obsidiana vs pergaminoClaro >= 4.5:1', () {
-      final ratio = _contrastRatio(appBarTitleColor, appBarBgColor);
+    const gridBgColor = PrivateCodexContrastConstants.gridBgColor;
+    const dayCellEmptyBgColor = PrivateCodexContrastConstants.dayCellEmptyBgColor;
+    const dayCellEmptyBgAlpha = PrivateCodexContrastConstants.dayCellEmptyBgAlpha;
+    const dayCellEmptyTextColor = PrivateCodexContrastConstants.dayCellEmptyTextColor;
+    const dayCellEmptyTextAlpha = PrivateCodexContrastConstants.dayCellEmptyTextAlpha;
+
+    const parchmentBgColor = PrivateCodexContrastConstants.parchmentBgColor;
+    const parchmentTitleColor = PrivateCodexContrastConstants.parchmentTitleColor;
+    const parchmentTextColor = PrivateCodexContrastConstants.parchmentTextColor;
+    const parchmentTextAlpha = PrivateCodexContrastConstants.parchmentTextAlpha;
+    const parchmentDividerColor = PrivateCodexContrastConstants.parchmentDividerColor;
+    const parchmentDividerAlpha = PrivateCodexContrastConstants.parchmentDividerAlpha;
+    const closeButtonBgColor = PrivateCodexContrastConstants.closeButtonBgColor;
+    const closeButtonTextColor = PrivateCodexContrastConstants.closeButtonTextColor;
+
+    const errorIconColor = PrivateCodexContrastConstants.errorIconColor;
+    const errorTextColor = PrivateCodexContrastConstants.errorTextColor;
+
+    // Vista bloqueada - fondo sólido (obsidiana)
+    test('privatecodex_vault_titulo: oro vs obsidiana >= 4.5:1', () {
+      final ratio = _contrastRatio(vaultTitleColor, vaultBgColor);
       expect(
         ratio,
         greaterThanOrEqualTo(4.5),
         reason:
-            'diaryhistory_appbar_titulo: contraste ${ratio.toStringAsFixed(2)}:1, mínimo 4.5:1',
+            'privatecodex_vault_titulo: contraste ${ratio.toStringAsFixed(2)}:1, mínimo 4.5:1',
       );
     });
 
-    test('diaryhistory_appbar_icono: obsidiana vs pergaminoClaro >= 4.5:1', () {
-      final ratio = _contrastRatio(appBarIconColor, appBarBgColor);
+    test('privatecodex_vault_subtitulo: pergaminoClaro alpha 0.8 vs obsidiana >= 4.5:1', () {
+      final textWithAlpha = vaultSubtitleColor.withValues(alpha: vaultSubtitleAlpha);
+      final effectiveText = Color.alphaBlend(textWithAlpha, vaultBgColor);
+      final ratio = _contrastRatio(effectiveText, vaultBgColor);
       expect(
         ratio,
         greaterThanOrEqualTo(4.5),
         reason:
-            'diaryhistory_appbar_icono: contraste ${ratio.toStringAsFixed(2)}:1, mínimo 4.5:1',
+            'privatecodex_vault_subtitulo: contraste ${ratio.toStringAsFixed(2)}:1, mínimo 4.5:1',
       );
     });
 
-    // Tarjeta de entrada - fondo blanco sólido
-    test('diaryhistory_tarjeta_fecha: obsidiana vs blanco >= 4.5:1', () {
-      final ratio = _contrastRatio(entryDateTimeColor, entryCardBgColor);
+    test('privatecodex_vault_boton_desbloquear: obsidiana vs oro >= 4.5:1', () {
+      final ratio = _contrastRatio(unlockButtonTextColor, unlockButtonBgColor);
       expect(
         ratio,
         greaterThanOrEqualTo(4.5),
         reason:
-            'diaryhistory_tarjeta_fecha: contraste ${ratio.toStringAsFixed(2)}:1, mínimo 4.5:1',
+            'privatecodex_vault_boton_desbloquear: contraste ${ratio.toStringAsFixed(2)}:1, mínimo 4.5:1',
       );
     });
 
-    test('diaryhistory_tarjeta_emocion_deidad: obsidiana vs blanco >= 4.5:1', () {
-      final ratio = _contrastRatio(entryEmotionDeityColor, entryCardBgColor);
+    test('privatecodex_vault_boton_volver: pergaminoClaro alpha 0.9 vs obsidiana >= 4.5:1', () {
+      final textWithAlpha = backButtonColor.withValues(alpha: backButtonAlpha);
+      final effectiveText = Color.alphaBlend(textWithAlpha, vaultBgColor);
+      final ratio = _contrastRatio(effectiveText, vaultBgColor);
       expect(
         ratio,
         greaterThanOrEqualTo(4.5),
         reason:
-            'diaryhistory_tarjeta_emocion_deidad: contraste ${ratio.toStringAsFixed(2)}:1, mínimo 4.5:1',
+            'privatecodex_vault_boton_volver: contraste ${ratio.toStringAsFixed(2)}:1, mínimo 4.5:1',
       );
     });
 
-    test('diaryhistory_tarjeta_emocion_label: obsidiana alpha 0.6 vs blanco >= 4.5:1', () {
-      final textWithAlpha = entryEmotionLabelColor.withValues(alpha: entryEmotionLabelAlpha);
-      final effectiveText = Color.alphaBlend(textWithAlpha, entryCardBgColor);
-      final ratio = _contrastRatio(effectiveText, entryCardBgColor);
+    // Vista desbloqueada - Header
+    test('privatecodex_header_titulo: oro vs obsidiana >= 4.5:1', () {
+      final ratio = _contrastRatio(headerTitleColor, headerBgColor);
       expect(
         ratio,
         greaterThanOrEqualTo(4.5),
         reason:
-            'diaryhistory_tarjeta_emocion_label: contraste ${ratio.toStringAsFixed(2)}:1, mínimo 4.5:1',
+            'privatecodex_header_titulo: contraste ${ratio.toStringAsFixed(2)}:1, mínimo 4.5:1',
       );
     });
 
-    test('diaryhistory_tarjeta_pluma_nombre: obsidiana vs blanco >= 4.5:1', () {
-      final ratio = _contrastRatio(entryFeatherNameColor, entryCardBgColor);
-      expect(
-        ratio,
-        greaterThanOrEqualTo(4.5),
-        reason:
-            'diaryhistory_tarjeta_pluma_nombre: contraste ${ratio.toStringAsFixed(2)}:1, mínimo 4.5:1',
-      );
-    });
-
-    test('diaryhistory_tarjeta_pluma_mensaje: obsidiana alpha 0.7 vs blanco >= 4.5:1', () {
-      final textWithAlpha = entryFeatherMessageColor.withValues(alpha: entryFeatherMessageAlpha);
-      final effectiveText = Color.alphaBlend(textWithAlpha, entryCardBgColor);
-      final ratio = _contrastRatio(effectiveText, entryCardBgColor);
-      expect(
-        ratio,
-        greaterThanOrEqualTo(4.5),
-        reason:
-            'diaryhistory_tarjeta_pluma_mensaje: contraste ${ratio.toStringAsFixed(2)}:1, mínimo 4.5:1',
-      );
-    });
-
-    test('diaryhistory_tarjeta_divisor: obsidiana alpha 0.1 vs blanco >= 4.5:1 (decorativo)', () {
-      // El divisor es decorativo, pero verificamos que no sea invisible
-      final dividerWithAlpha = entryDividerColor.withValues(alpha: entryDividerAlpha);
-      final effectiveDivider = Color.alphaBlend(dividerWithAlpha, entryCardBgColor);
-      final ratio = _contrastRatio(effectiveDivider, entryCardBgColor);
-      // Divisor decorativo - mínimo 3:1 para elementos UI no textuales
+    test('privatecodex_header_icono_cerrar: pergaminoClaro alpha 0.9 vs obsidiana >= 3:1 (decorativo)', () {
+      final iconWithAlpha = headerIconColor.withValues(alpha: headerIconAlpha);
+      final effectiveIcon = Color.alphaBlend(iconWithAlpha, headerBgColor);
+      final ratio = _contrastRatio(effectiveIcon, headerBgColor);
       expect(
         ratio,
         greaterThanOrEqualTo(3.0),
         reason:
-            'diaryhistory_tarjeta_divisor: contraste ${ratio.toStringAsFixed(2)}:1, mínimo 3:1 (decorativo)',
+            'privatecodex_header_icono_cerrar: contraste ${ratio.toStringAsFixed(2)}:1, mínimo 3:1 (decorativo)',
       );
     });
 
-    test('diaryhistory_tarjeta_contenido: obsidiana alpha 0.85 vs blanco >= 4.5:1', () {
-      final textWithAlpha = entryContentColor.withValues(alpha: entryContentAlpha);
-      final effectiveText = Color.alphaBlend(textWithAlpha, entryCardBgColor);
-      final ratio = _contrastRatio(effectiveText, entryCardBgColor);
+    // Selector de mes/año
+    test('privatecodex_month_selector_texto: obsidiana vs pergaminoClaro >= 4.5:1', () {
+      final ratio = _contrastRatio(monthSelectorTextColor, monthSelectorBgColor);
       expect(
         ratio,
         greaterThanOrEqualTo(4.5),
         reason:
-            'diaryhistory_tarjeta_contenido: contraste ${ratio.toStringAsFixed(2)}:1, mínimo 4.5:1',
+            'privatecodex_month_selector_texto: contraste ${ratio.toStringAsFixed(2)}:1, mínimo 4.5:1',
       );
     });
 
-    // Estado vacío - fondo pergaminoClaro (appBarBgColor)
-    test('diaryhistory_vacio_icono: obsidiana alpha 0.4 vs pergaminoClaro >= 4.5:1 (decorativo)', () {
-      final iconWithAlpha = emptyStateIconColor.withValues(alpha: emptyStateIconAlpha);
-      final effectiveIcon = Color.alphaBlend(iconWithAlpha, appBarBgColor);
-      final ratio = _contrastRatio(effectiveIcon, appBarBgColor);
-      // Icono decorativo - mínimo 3:1
+    test('privatecodex_month_selector_borde: obsidiana alpha 0.2 vs pergaminoClaro >= 3:1 (decorativo)', () {
+      final borderWithAlpha = monthSelectorBorderColor.withValues(alpha: monthSelectorBorderAlpha);
+      final effectiveBorder = Color.alphaBlend(borderWithAlpha, monthSelectorBgColor);
+      final ratio = _contrastRatio(effectiveBorder, monthSelectorBgColor);
       expect(
         ratio,
         greaterThanOrEqualTo(3.0),
         reason:
-            'diaryhistory_vacio_icono: contraste ${ratio.toStringAsFixed(2)}:1, mínimo 3:1 (decorativo)',
+            'privatecodex_month_selector_borde: contraste ${ratio.toStringAsFixed(2)}:1, mínimo 3:1 (decorativo)',
       );
     });
 
-    test('diaryhistory_vacio_texto: obsidiana alpha 0.8 vs pergaminoClaro >= 4.5:1', () {
-      final textWithAlpha = emptyStateTextColor.withValues(alpha: emptyStateTextAlpha);
-      final effectiveText = Color.alphaBlend(textWithAlpha, appBarBgColor);
-      final ratio = _contrastRatio(effectiveText, appBarBgColor);
+    // Filtro de climas (chips)
+    test('privatecodex_filter_chip_selected: blanco vs jade >= 4.5:1', () {
+      final ratio = _contrastRatio(filterChipSelectedTextColor, filterChipSelectedBgColor);
       expect(
         ratio,
         greaterThanOrEqualTo(4.5),
         reason:
-            'diaryhistory_vacio_texto: contraste ${ratio.toStringAsFixed(2)}:1, mínimo 4.5:1',
+            'privatecodex_filter_chip_selected: contraste ${ratio.toStringAsFixed(2)}:1, mínimo 4.5:1',
       );
     });
 
-    // Estado error
-    test('diaryhistory_error_icono: rojoGrana vs pergaminoClaro >= 4.5:1 (decorativo)', () {
-      final ratio = _contrastRatio(errorIconColor, appBarBgColor);
+    test('privatecodex_filter_chip_unselected: obsidiana alpha 0.8 vs pergaminoClaro >= 4.5:1', () {
+      final textWithAlpha = filterChipUnselectedTextColor.withValues(alpha: filterChipUnselectedTextAlpha);
+      final effectiveText = Color.alphaBlend(textWithAlpha, filterChipUnselectedBgColor);
+      final ratio = _contrastRatio(effectiveText, filterChipUnselectedBgColor);
+      expect(
+        ratio,
+        greaterThanOrEqualTo(4.5),
+        reason:
+            'privatecodex_filter_chip_unselected: contraste ${ratio.toStringAsFixed(2)}:1, mínimo 4.5:1',
+      );
+    });
+
+    // Cuadrícula del calendario - día vacío
+    test('privatecodex_day_cell_empty: obsidiana alpha 0.5 vs piedra volcánica alpha 0.3 sobre pergamino >= 4.5:1', () {
+      // Fondo: piedra volcánica alpha 0.3 sobre pergamino
+      final bgWithAlpha = dayCellEmptyBgColor.withValues(alpha: dayCellEmptyBgAlpha);
+      final effectiveBg = Color.alphaBlend(bgWithAlpha, gridBgColor);
+      // Texto: obsidiana alpha 0.5
+      final textWithAlpha = dayCellEmptyTextColor.withValues(alpha: dayCellEmptyTextAlpha);
+      final effectiveText = Color.alphaBlend(textWithAlpha, effectiveBg);
+      final ratio = _contrastRatio(effectiveText, effectiveBg);
+      expect(
+        ratio,
+        greaterThanOrEqualTo(4.5),
+        reason:
+            'privatecodex_day_cell_empty: contraste ${ratio.toStringAsFixed(2)}:1, mínimo 4.5:1',
+      );
+    });
+
+    // Pergamino de detalle (CodexDayParchmentSheet)
+    test('privatecodex_parchment_titulo: obsidiana vs pergaminoClaro >= 4.5:1', () {
+      final ratio = _contrastRatio(parchmentTitleColor, parchmentBgColor);
+      expect(
+        ratio,
+        greaterThanOrEqualTo(4.5),
+        reason:
+            'privatecodex_parchment_titulo: contraste ${ratio.toStringAsFixed(2)}:1, mínimo 4.5:1',
+      );
+    });
+
+    test('privatecodex_parchment_texto: obsidiana alpha 0.9 vs pergaminoClaro >= 4.5:1', () {
+      final textWithAlpha = parchmentTextColor.withValues(alpha: parchmentTextAlpha);
+      final effectiveText = Color.alphaBlend(textWithAlpha, parchmentBgColor);
+      final ratio = _contrastRatio(effectiveText, parchmentBgColor);
+      expect(
+        ratio,
+        greaterThanOrEqualTo(4.5),
+        reason:
+            'privatecodex_parchment_texto: contraste ${ratio.toStringAsFixed(2)}:1, mínimo 4.5:1',
+      );
+    });
+
+    test('privatecodex_parchment_divisor: obsidiana alpha 0.3 vs pergaminoClaro >= 3:1 (decorativo)', () {
+      final dividerWithAlpha = parchmentDividerColor.withValues(alpha: parchmentDividerAlpha);
+      final effectiveDivider = Color.alphaBlend(dividerWithAlpha, parchmentBgColor);
+      final ratio = _contrastRatio(effectiveDivider, parchmentBgColor);
       expect(
         ratio,
         greaterThanOrEqualTo(3.0),
         reason:
-            'diaryhistory_error_icono: contraste ${ratio.toStringAsFixed(2)}:1, mínimo 3:1 (decorativo)',
+            'privatecodex_parchment_divisor: contraste ${ratio.toStringAsFixed(2)}:1, mínimo 3:1 (decorativo)',
       );
     });
 
-    test('diaryhistory_error_titulo: obsidiana vs pergaminoClaro >= 4.5:1', () {
-      final ratio = _contrastRatio(errorTitleColor, appBarBgColor);
+    test('privatecodex_parchment_boton_cerrar: oro vs obsidiana >= 4.5:1', () {
+      final ratio = _contrastRatio(closeButtonTextColor, closeButtonBgColor);
       expect(
         ratio,
         greaterThanOrEqualTo(4.5),
         reason:
-            'diaryhistory_error_titulo: contraste ${ratio.toStringAsFixed(2)}:1, mínimo 4.5:1',
+            'privatecodex_parchment_boton_cerrar: contraste ${ratio.toStringAsFixed(2)}:1, mínimo 4.5:1',
       );
     });
 
-    test('diaryhistory_error_mensaje: obsidiana alpha 0.6 vs pergaminoClaro >= 4.5:1', () {
-      final textWithAlpha = errorMessageColor.withValues(alpha: errorMessageAlpha);
-      final effectiveText = Color.alphaBlend(textWithAlpha, appBarBgColor);
-      final ratio = _contrastRatio(effectiveText, appBarBgColor);
-      expect(
-        ratio,
-        greaterThanOrEqualTo(4.5),
-        reason:
-            'diaryhistory_error_mensaje: contraste ${ratio.toStringAsFixed(2)}:1, mínimo 4.5:1',
-      );
-    });
-
-    // Loading
-    test('diaryhistory_loading: obsidiana vs pergaminoClaro >= 4.5:1 (decorativo)', () {
-      final ratio = _contrastRatio(loadingColor, appBarBgColor);
+    // Estados error/carga
+    test('privatecodex_error_icono: rojoGrana vs pergaminoClaro >= 3:1 (decorativo)', () {
+      final ratio = _contrastRatio(errorIconColor, parchmentBgColor);
       expect(
         ratio,
         greaterThanOrEqualTo(3.0),
         reason:
-            'diaryhistory_loading: contraste ${ratio.toStringAsFixed(2)}:1, mínimo 3:1 (decorativo)',
+            'privatecodex_error_icono: contraste ${ratio.toStringAsFixed(2)}:1, mínimo 3:1 (decorativo)',
       );
     });
 
-    // Feather error
-    test('diaryhistory_feather_error: obsidiana alpha 0.5 vs blanco >= 4.5:1', () {
-      final textWithAlpha = featherErrorColor.withValues(alpha: featherErrorAlpha);
-      final effectiveText = Color.alphaBlend(textWithAlpha, entryCardBgColor);
-      final ratio = _contrastRatio(effectiveText, entryCardBgColor);
+    test('privatecodex_error_texto: obsidiana vs pergaminoClaro >= 4.5:1', () {
+      final ratio = _contrastRatio(errorTextColor, parchmentBgColor);
       expect(
         ratio,
         greaterThanOrEqualTo(4.5),
         reason:
-            'diaryhistory_feather_error: contraste ${ratio.toStringAsFixed(2)}:1, mínimo 4.5:1',
+            'privatecodex_error_texto: contraste ${ratio.toStringAsFixed(2)}:1, mínimo 4.5:1',
       );
     });
   });

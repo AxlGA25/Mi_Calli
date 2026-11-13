@@ -47,7 +47,7 @@ class SanctuaryTexts {
   static const String semanticaMisEntradas =
       'Abrir historial de entradas del diario';
 
-  // Estado vacío en DiaryHistoryScreen (provisional)
+  // Estado vacío en PrivateCodexScreen (Códice Privado)
   static const String historialVacioMensaje =
       'Aún no has entregado ninguna ofrenda. Tus palabras aparecerán aquí cuando escribas.';
 }

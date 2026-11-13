@@ -13,7 +13,7 @@ import 'package:mi_calli/core/audio/ambient_audio_service.dart';
 import 'package:mi_calli/core/performance/safe_animation_wrapper.dart';
 import 'package:mi_calli/features/1_sanctuary_journal/models/prehispanic_emotion.dart';
 import 'package:mi_calli/features/1_sanctuary_journal/presentation/sanctuary_journal_screen.dart';
-import 'package:mi_calli/features/1_sanctuary_journal/presentation/diary_history_screen.dart';
+import 'package:mi_calli/features/1_sanctuary_journal/presentation/private_codex_screen.dart';
 import 'package:mi_calli/features/2_gamification/models/deity_relic_models.dart';
 import 'package:mi_calli/features/2_gamification/providers/relics_provider.dart';
 import 'package:mi_calli/features/2_gamification/services/tonalpohualli_generator.dart';
@@ -171,7 +171,7 @@ class _ValleyStack extends ConsumerWidget {
     void openCodex() {
       Navigator.of(context).push(
         MaterialPageRoute<void>(
-          builder: (_) => const DiaryHistoryScreen(),
+          builder: (_) => const PrivateCodexScreen(),
         ),
       );
     }

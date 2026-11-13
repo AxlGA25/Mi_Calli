@@ -1209,7 +1209,7 @@ void main() {
       expect(pushCount, greaterThan(0));
     });
 
-    testWidgets('tap en zona Templo del Códice navega a DiaryHistoryScreen', (tester) async {
+    testWidgets('tap en zona Templo del Códice navega a PrivateCodexScreen', (tester) async {
       // Observer para rastrear navegación y hacer pop inmediato para evitar timers
       int pushCount = 0;
       NavigatorState? navigatorStateRef;
