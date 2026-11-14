@@ -73,12 +73,20 @@ class LegalTexts {
       'contraseña que recuerdes: no la guardamos y, si la olvidas, no '
       'podremos recuperar el archivo. Guarda el archivo en un lugar seguro; '
       'quien tenga el archivo y la contraseña podrá leerlo.';
+  static const String exportSuccess = 'Diario exportado correctamente. Guarda el archivo en un lugar seguro.';
+  static const String exportError = 'No se pudo exportar el diario. Inténtalo de nuevo.';
 
   // ─── A9. Importar diario ───
+  static const String importWarningTitle = 'Importar mi diario';
+  static const String importWarningBody =
+      'Vas a agregar al refugio las entradas de este archivo. No se borrarán '
+      'las que ya tienes ni se duplicarán las repetidas. Necesitarás la '
+      'contraseña con la que lo exportaste.';
   static const String importConfirm =
       'Vas a agregar al refugio las entradas de este archivo. No se borrarán '
       'las que ya tienes ni se duplicarán las repetidas. Necesitarás la '
       'contraseña con la que lo exportaste.';
+  static const String importError = 'No se pudo importar el archivo. Verifica la contraseña e inténtalo de nuevo.';
 
   // ─── A10. Recordatorio ───
   static const String reminderExplain =

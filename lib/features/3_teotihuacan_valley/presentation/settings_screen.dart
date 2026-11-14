@@ -14,6 +14,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import 'package:mi_calli/core/backup/diary_backup_service.dart';
 import 'package:mi_calli/core/constants/app_colors.dart';
 import 'package:mi_calli/core/constants/legal_texts.dart';
 import 'package:mi_calli/core/notifications/reminder_service.dart';
@@ -187,7 +188,15 @@ class SettingsScreen extends ConsumerWidget {
               title: 'Exportar mi Diario',
               subtitle: 'Crea un archivo .calli cifrado',
               color: AppColors.jade,
-              onTap: () => _showExportDialog(context),
+              onTap: () => _showExportDialog(context, ref),
+            ),
+            _buildActionTile(
+              context,
+              icon: Icons.upload_rounded,
+              title: 'Importar mi Diario',
+              subtitle: 'Restaura desde un archivo .calli',
+              color: AppColors.turquesa,
+              onTap: () => _showImportDialog(context, ref),
             ),
           ],
         ),
@@ -544,7 +553,11 @@ class SettingsScreen extends ConsumerWidget {
     );
   }
 
-  void _showExportDialog(BuildContext context) {
+  void _showExportDialog(BuildContext context, WidgetRef ref) {
+    final passwordController = TextEditingController();
+    final confirmController = TextEditingController();
+    final formKey = GlobalKey<FormState>();
+
     showDialog<void>(
       context: context,
       builder: (_) => AlertDialog(
@@ -554,27 +567,219 @@ class SettingsScreen extends ConsumerWidget {
           side: BorderSide(color: AppColors.jade.withValues(alpha: 0.3)),
         ),
         title: Text(LegalTexts.exportWarningTitle, style: TextStyle(color: AppColors.jade)),
-        content: Text(LegalTexts.exportWarningBody, style: TextStyle(color: AppColors.pergaminoClaro)),
+        content: Form(
+          key: formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(LegalTexts.exportWarningBody, style: TextStyle(color: AppColors.pergaminoClaro)),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: passwordController,
+                style: const TextStyle(color: AppColors.pergaminoClaro),
+                obscureText: true,
+                decoration: InputDecoration(
+                  labelText: 'Contraseña',
+                  labelStyle: TextStyle(color: AppColors.pergaminoClaro.withValues(alpha: 0.6)),
+                  filled: true,
+                  fillColor: AppColors.pergaminoClaro.withValues(alpha: 0.05),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: AppColors.jade.withValues(alpha: 0.3)),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: AppColors.jade.withValues(alpha: 0.3)),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: AppColors.jade, width: 2),
+                  ),
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'La contraseña es obligatoria';
+                  }
+                  if (value.length < 8) {
+                    return 'Mínimo 8 caracteres';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: confirmController,
+                style: const TextStyle(color: AppColors.pergaminoClaro),
+                obscureText: true,
+                decoration: InputDecoration(
+                  labelText: 'Confirmar contraseña',
+                  labelStyle: TextStyle(color: AppColors.pergaminoClaro.withValues(alpha: 0.6)),
+                  filled: true,
+                  fillColor: AppColors.pergaminoClaro.withValues(alpha: 0.05),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: AppColors.jade.withValues(alpha: 0.3)),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: AppColors.jade.withValues(alpha: 0.3)),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: AppColors.jade, width: 2),
+                  ),
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Confirma la contraseña';
+                  }
+                  if (value != passwordController.text) {
+                    return 'Las contraseñas no coinciden';
+                  }
+                  return null;
+                },
+              ),
+            ],
+          ),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
             child: Text('Cancelar', style: TextStyle(color: AppColors.pergaminoClaro)),
           ),
-          TextButton(
+          FilledButton(
             onPressed: () async {
+              if (!formKey.currentState!.validate()) return;
+
               Navigator.of(context).pop();
-              // TODO: Implementar exportación en DiaryBackupService (Tarea 4.8)
+
+              final backupService = ref.read(diaryBackupServiceProvider);
+              final success = await backupService.exportBackup(passwordController.text);
+
               if (context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Exportación disponible en Tarea 4.8'),
-                    behavior: SnackBarBehavior.floating,
-                    backgroundColor: AppColors.oro,
-                  ),
-                );
+                if (success) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(LegalTexts.exportSuccess),
+                      behavior: SnackBarBehavior.floating,
+                      backgroundColor: AppColors.jade,
+                    ),
+                  );
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(LegalTexts.exportError),
+                      behavior: SnackBarBehavior.floating,
+                      backgroundColor: AppColors.rojoGrana,
+                    ),
+                  );
+                }
               }
             },
-            child: Text('Exportar', style: TextStyle(color: AppColors.jade)),
+            style: FilledButton.styleFrom(
+              backgroundColor: AppColors.jade,
+              foregroundColor: AppColors.obsidiana,
+            ),
+            child: const Text('Exportar'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showImportDialog(BuildContext context, WidgetRef ref) {
+    final passwordController = TextEditingController();
+    final formKey = GlobalKey<FormState>();
+
+    showDialog<void>(
+      context: context,
+      builder: (_) => AlertDialog(
+        backgroundColor: AppColors.obsidiana,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: BorderSide(color: AppColors.turquesa.withValues(alpha: 0.3)),
+        ),
+        title: Text(LegalTexts.importWarningTitle, style: TextStyle(color: AppColors.turquesa)),
+        content: Form(
+          key: formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(LegalTexts.importWarningBody, style: TextStyle(color: AppColors.pergaminoClaro)),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: passwordController,
+                style: const TextStyle(color: AppColors.pergaminoClaro),
+                obscureText: true,
+                decoration: InputDecoration(
+                  labelText: 'Contraseña del archivo .calli',
+                  labelStyle: TextStyle(color: AppColors.pergaminoClaro.withValues(alpha: 0.6)),
+                  filled: true,
+                  fillColor: AppColors.pergaminoClaro.withValues(alpha: 0.05),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: AppColors.turquesa.withValues(alpha: 0.3)),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: AppColors.turquesa.withValues(alpha: 0.3)),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: AppColors.turquesa, width: 2),
+                  ),
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'La contraseña es obligatoria';
+                  }
+                  return null;
+                },
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text('Cancelar', style: TextStyle(color: AppColors.pergaminoClaro)),
+          ),
+          FilledButton(
+            onPressed: () async {
+              if (!formKey.currentState!.validate()) return;
+
+              Navigator.of(context).pop();
+
+              final backupService = ref.read(diaryBackupServiceProvider);
+              final result = await backupService.importBackup(passwordController.text);
+
+              if (context.mounted) {
+                if (result != null) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Importación exitosa: ${result.entriesCount} entradas, ${result.moodsCount} estados, ${result.chinampasCount} chinampas, ${result.cyclesCount} ciclos'),
+                      behavior: SnackBarBehavior.floating,
+                      backgroundColor: AppColors.jade,
+                    ),
+                  );
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(LegalTexts.importError),
+                      behavior: SnackBarBehavior.floating,
+                      backgroundColor: AppColors.rojoGrana,
+                    ),
+                  );
+                }
+              }
+            },
+            style: FilledButton.styleFrom(
+              backgroundColor: AppColors.turquesa,
+              foregroundColor: AppColors.obsidiana,
+            ),
+            child: const Text('Importar'),
           ),
         ],
       ),

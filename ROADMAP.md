@@ -64,7 +64,7 @@
   *Listo cuando:* cada ajuste se guarda y se aplica de inmediato, y la pantalla de aviso muestra los textos de `legal_texts.dart`.
 - [x] **4.7.** Implementar `ReminderService` con `flutter_local_notifications`: recordatorio diario opcional a la hora elegida, mensaje genérico, permiso pedido solo al activarlo.
   *Listo cuando:* activarlo pide permiso y programa la notificación, desactivarlo la cancela, y el texto no menciona racha ni contenido.
-- [ ] **4.8.** Implementar `DiaryBackupService`: exportar a archivo `.calli` cifrado con contraseña del usuario (4 tablas locales), compartirlo con `share_plus`, e importarlo con `file_picker` fusionando por `id`.
+- [x] **4.8.** Implementar `DiaryBackupService`: exportar a archivo `.calli` cifrado con contraseña del usuario (4 tablas locales), compartirlo con `share_plus`, e importarlo con `file_picker` fusionando por `id`.
   *Listo cuando:* una prueba exporta, importa en una base vacía y recupera las mismas entradas; con contraseña incorrecta la importación falla sin dañar datos; el archivo no contiene texto legible.
 - [ ] **4.9.** Pasada de accesibilidad: revisar `Semantics`, escalado de texto al 200 %, contraste y modo "reducir movimiento" en todas las pantallas.
   *Listo cuando:* ninguna pantalla se desborda a 200 % de texto y cada elemento interactivo se anuncia correctamente con el lector de pantalla.
