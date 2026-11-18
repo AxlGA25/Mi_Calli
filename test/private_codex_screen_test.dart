@@ -405,7 +405,7 @@ void main() {
       expect(find.text('Pluma de Tláloc'), findsOneWidget);
 
       // Cerrar pergamino
-      await tester.tap(find.byIcon(Icons.close_rounded).first);
+      await tester.tap(find.byKey(const ValueKey('codex_parchment_close_button')));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 100));
     });

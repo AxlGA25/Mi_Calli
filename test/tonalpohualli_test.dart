@@ -2,6 +2,7 @@
 // Pruebas de disponibilidad (isReadingAvailable) y generación (generateWeeklyReading).
 
 import 'dart:io';
+import 'dart:math';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter/material.dart';
@@ -32,8 +33,8 @@ void main() {
     // Directorio temporal para BD
     tempDir = await Directory.systemTemp.createTemp('tonalpohualli_test_');
 
-    // BD de prueba con SQLite FFI (sin cifrado)
-    final dbPath = '${tempDir.path}/test.db';
+    // BD de prueba con SQLite FFI (sin cifrado) - ruta única por test para evitar colisiones :memory:
+    final dbPath = '${tempDir.path}/test_${DateTime.now().microsecondsSinceEpoch}_${Random().nextInt(10000)}.db';
     final secureStorageMock = SecureStorageMock();
     db = LocalDatabaseService.createForTesting(
       secureStorage: secureStorageMock,

@@ -115,10 +115,12 @@ class ChinampaBottomSheet extends ConsumerWidget {
           const SizedBox(width: 16),
           Expanded(
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Text(
                   'Chinampa Sagrada',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                         color: AppColors.pergaminoClaro,
                         fontWeight: FontWeight.bold,
@@ -126,6 +128,8 @@ class ChinampaBottomSheet extends ConsumerWidget {
                 ),
                 Text(
                   'Tus cultivos emocionales',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: AppColors.pergaminoClaro.withValues(alpha: 0.7),
                       ),
@@ -163,6 +167,8 @@ class ChinampaBottomSheet extends ConsumerWidget {
         children: [
           Text(
             'Parcelas',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
                   color: AppColors.oro,
                   fontWeight: FontWeight.w700,
@@ -317,6 +323,8 @@ class ChinampaBottomSheet extends ConsumerWidget {
                                 isEmpty
                                     ? 'Parcela ${slot.slotIndex + 1} (Vacía)'
                                     : slot.catalogItem?.name ?? slot.seedId ?? 'Planta desconocida',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
                                       color: isEmpty
                                           ? AppColors.pergaminoClaro.withValues(alpha: 0.6)
@@ -344,6 +352,8 @@ class ChinampaBottomSheet extends ConsumerWidget {
                         if (isEmpty)
                           Text(
                             'Toca para plantar una semilla',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                             style: Theme.of(context).textTheme.bodySmall?.copyWith(
                                   color: AppColors.pergaminoClaro.withValues(alpha: 0.5),
                                 ),
@@ -456,12 +466,16 @@ class ChinampaBottomSheet extends ConsumerWidget {
           children: [
             Text(
               'Riegos: ${slot.currentWaterings} / ${slot.wateringsNeeded}',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: AppColors.pergaminoClaro.withValues(alpha: 0.8),
                   ),
             ),
             Text(
               '${(progress * 100).round()}%',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: color,
                     fontWeight: FontWeight.w600,
@@ -671,6 +685,8 @@ class ChinampaBottomSheet extends ConsumerWidget {
                 children: [
                   Text(
                     'Inventario de Semillas',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
                           color: AppColors.oro,
                           fontWeight: FontWeight.w700,
@@ -709,6 +725,8 @@ class ChinampaBottomSheet extends ConsumerWidget {
                         const SizedBox(height: 8),
                         Text(
                           'No tienes semillas en el inventario',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                                 color: AppColors.pergaminoClaro.withValues(alpha: 0.6),
                               ),
@@ -717,6 +735,8 @@ class ChinampaBottomSheet extends ConsumerWidget {
                         Text(
                           'Las semillas aparecen al escribir en el diario\nsegún tu clima emocional.',
                           textAlign: TextAlign.center,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
                           style: Theme.of(context).textTheme.bodySmall?.copyWith(
                                 color: AppColors.pergaminoClaro.withValues(alpha: 0.4),
                               ),

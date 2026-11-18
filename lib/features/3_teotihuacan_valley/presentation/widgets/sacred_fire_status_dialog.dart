@@ -214,6 +214,11 @@ class SacredFireStatusDialog extends ConsumerWidget {
   }
 
   Widget _buildStreakSection(BuildContext context, GamificationState state, SacredFireTier tier) {
+    // A 200% de escala de texto (textScale > 1.4), apilar las dos tarjetas
+    // en vertical para evitar overflow en columnas estrechas (~156px).
+    final textScale = MediaQuery.textScalerOf(context).scale(1);
+    final stackVertically = textScale > 1.4;
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -238,27 +243,45 @@ class SacredFireStatusDialog extends ConsumerWidget {
             ],
           ),
           const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: _buildStatItem(
-                  context,
-                  'Racha actual',
-                  '${state.currentStreak} ${state.currentStreak == 1 ? 'día' : 'días'}',
-                  tier.primaryColor,
+          if (stackVertically) ...[
+            _buildStatItem(
+              context,
+              'Racha actual',
+              '${state.currentStreak} ${state.currentStreak == 1 ? 'día' : 'días'}',
+              tier.primaryColor,
+            ),
+            const SizedBox(height: 12),
+            Container(width: double.infinity, height: 1, color: tier.primaryColor.withValues(alpha: 0.2)),
+            const SizedBox(height: 12),
+            _buildStatItem(
+              context,
+              'Mejor racha',
+              '${state.longestStreak} ${state.longestStreak == 1 ? 'día' : 'días'}',
+              AppColors.oro,
+            ),
+          ] else ...[
+            Row(
+              children: [
+                Expanded(
+                  child: _buildStatItem(
+                    context,
+                    'Racha actual',
+                    '${state.currentStreak} ${state.currentStreak == 1 ? 'día' : 'días'}',
+                    tier.primaryColor,
+                  ),
                 ),
-              ),
-              Container(width: 1, height: 40, color: tier.primaryColor.withValues(alpha: 0.2)),
-              Expanded(
-                child: _buildStatItem(
-                  context,
-                  'Mejor racha',
-                  '${state.longestStreak} ${state.longestStreak == 1 ? 'día' : 'días'}',
-                  AppColors.oro,
+                Container(width: 1, height: 40, color: tier.primaryColor.withValues(alpha: 0.2)),
+                Expanded(
+                  child: _buildStatItem(
+                    context,
+                    'Mejor racha',
+                    '${state.longestStreak} ${state.longestStreak == 1 ? 'día' : 'días'}',
+                    AppColors.oro,
+                  ),
                 ),
-              ),
-            ],
-          ),
+              ],
+            ),
+          ],
         ],
       ),
     );
@@ -288,6 +311,11 @@ class SacredFireStatusDialog extends ConsumerWidget {
   }
 
   Widget _buildQuetzalSection(BuildContext context, GamificationState state, QuetzalEvolutionStage stage) {
+    // A 200% de escala de texto (textScale > 1.4), apilar las dos tarjetas
+    // en vertical para evitar overflow en columnas estrechas (~156px).
+    final textScale = MediaQuery.textScalerOf(context).scale(1);
+    final stackVertically = textScale > 1.4;
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -321,22 +349,35 @@ class SacredFireStatusDialog extends ConsumerWidget {
             ],
           ),
           const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: _buildStatItem(
-                  context,
-                  'Nivel ${stage.levelNumber}',
-                  stage.displayName,
-                  AppColors.jade,
+          if (stackVertically) ...[
+            _buildStatItem(
+              context,
+              'Nivel ${stage.levelNumber}',
+              stage.displayName,
+              AppColors.jade,
+            ),
+            const SizedBox(height: 12),
+            Container(width: double.infinity, height: 1, color: AppColors.jade.withValues(alpha: 0.2)),
+            const SizedBox(height: 12),
+            _buildXpProgress(context, state, stage),
+          ] else ...[
+            Row(
+              children: [
+                Expanded(
+                  child: _buildStatItem(
+                    context,
+                    'Nivel ${stage.levelNumber}',
+                    stage.displayName,
+                    AppColors.jade,
+                  ),
                 ),
-              ),
-              Container(width: 1, height: 40, color: AppColors.jade.withValues(alpha: 0.2)),
-              Expanded(
-                child: _buildXpProgress(context, state, stage),
-              ),
-            ],
-          ),
+                Container(width: 1, height: 40, color: AppColors.jade.withValues(alpha: 0.2)),
+                Expanded(
+                  child: _buildXpProgress(context, state, stage),
+                ),
+              ],
+            ),
+          ],
         ],
       ),
     );
@@ -350,11 +391,16 @@ class SacredFireStatusDialog extends ConsumerWidget {
         ? (state.quetzalXp - currentMinXp) / (nextMinXp - currentMinXp)
         : 1.0;
 
+    // Usar Wrap para que a 200% de escala de texto los elementos pasen a la
+    // siguiente línea sin desbordarse (fix overflow línea ~356).
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        Wrap(
+          alignment: WrapAlignment.spaceBetween,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          spacing: 8,
+          runSpacing: 4,
           children: [
             Text(
               'XP: ${state.quetzalXp}',
@@ -383,16 +429,20 @@ class SacredFireStatusDialog extends ConsumerWidget {
           ),
         ),
         const SizedBox(height: 8),
+        // Envuelve el Text en Flexible para que no se desborde a 200% (fix overflow línea ~386).
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(Icons.menu_book_rounded, size: 14, color: AppColors.pergaminoClaro.withValues(alpha: 0.6)),
             const SizedBox(width: 4),
-            Text(
-              '${state.feathersCount} Plumas de Sabiduría',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: AppColors.pergaminoClaro.withValues(alpha: 0.7),
-                  ),
+            Flexible(
+              child: Text(
+                '${state.feathersCount} Plumas de Sabiduría',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: AppColors.pergaminoClaro.withValues(alpha: 0.7),
+                    ),
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
           ],
         ),
@@ -511,16 +561,20 @@ class SacredFireStatusDialog extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Envuelve el Text en Flexible para evitar overflow a 200% (fix overflow línea ~514).
           Row(
             children: [
               Icon(Icons.diamond_rounded, color: AppColors.oro, size: 22),
               const SizedBox(width: 10),
-              Text(
-                'Reliquias Desbloqueadas',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color: AppColors.pergaminoClaro,
-                      fontWeight: FontWeight.w700,
-                    ),
+              Flexible(
+                child: Text(
+                  'Reliquias Desbloqueadas',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        color: AppColors.pergaminoClaro,
+                        fontWeight: FontWeight.w700,
+                      ),
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
             ],
           ),

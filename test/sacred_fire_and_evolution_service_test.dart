@@ -1,5 +1,6 @@
 // Tests para SacredFireAndEvolutionService usando SQLite FFI real.
 import 'dart:io';
+import 'dart:math';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as path;
@@ -28,9 +29,11 @@ void main() {
   setUp(() async {
     tempDir = await Directory.systemTemp.createTemp('mi_calli_test_');
     mockStorage = SecureStorageMock();
+    // Usar ruta única por test para evitar colisiones de :memory: en sqflite_common_ffi
+    final uniqueDbPath = path.join(tempDir.path, 'test_${DateTime.now().microsecondsSinceEpoch}_${Random().nextInt(10000)}.db');
     databaseService = LocalDatabaseService.createForTesting(
       secureStorage: mockStorage,
-      databasePath: path.join(tempDir.path, 'test.db'),
+      databasePath: uniqueDbPath,
       databaseFactory: databaseFactoryFfi,
     );
     // Inicializar la base de datos real

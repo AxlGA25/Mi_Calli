@@ -569,6 +569,7 @@ class _SanctuaryJournalScreenState extends ConsumerState<SanctuaryJournalScreen>
   /// WCAG >= 4.5:1. Área táctil >= 48x48 px.
   Widget _buildMisEntradasButton() {
     return Semantics(
+      key: const ValueKey('sanctuary_mis_entradas_button'),
       label: SanctuaryTexts.semanticaMisEntradas,
       button: true,
       child: Material(

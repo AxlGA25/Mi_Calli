@@ -1194,6 +1194,7 @@ class CodexDayParchmentSheet extends ConsumerWidget {
                       child: ConstrainedBox(
                         constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
                         child: IconButton(
+                          key: const ValueKey('codex_parchment_close_button'),
                           icon: Icon(
                             Icons.close_rounded,
                             color: PrivateCodexContrastConstants.closeButtonTextColor,
