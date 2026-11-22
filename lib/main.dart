@@ -11,7 +11,7 @@ import 'core/settings/app_settings_service.dart';
 import 'core/settings/app_settings_provider.dart';
 import 'features/0_onboarding/onboarding_flow.dart';
 import 'features/0_onboarding/biometric_lock_screen.dart';
-import 'features/1_sanctuary_journal/presentation/sanctuary_journal_screen.dart';
+import 'features/3_teotihuacan_valley/presentation/teotihuacan_valley_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Provider que inicializa AppSettingsService y expone el estado de onboarding.
@@ -291,7 +291,7 @@ class AppEntryPoint extends ConsumerWidget {
 }
 
 /// Pantalla principal que maneja el estado de la bóveda biométrica.
-/// Después del onboarding (y del candado de la app), muestra directamente SanctuaryJournalScreen.
+/// Después del onboarding (y del candado de la app), muestra directamente TeotihuacanValleyScreen.
 class ProtectedMainScreen extends ConsumerWidget {
   final AsyncValue<BiometricVaultState> vaultStateAsync;
 
@@ -301,9 +301,9 @@ class ProtectedMainScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final vaultState = vaultStateAsync.value ?? BiometricVaultState.locked;
 
-    // Si la bóveda está desbloqueada, mostrar el diario directamente (SantuaryJournalScreen)
+    // Si la bóveda está desbloqueada, mostrar el Valle de Teotihuacán
     if (vaultState == BiometricVaultState.unlocked) {
-      return const SanctuaryJournalScreen();
+      return const TeotihuacanValleyScreen();
     }
 
     // Si está bloqueada, autenticando, o error -> mostrar pantalla de desbloqueo

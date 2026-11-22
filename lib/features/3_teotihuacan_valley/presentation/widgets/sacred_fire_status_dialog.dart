@@ -40,11 +40,12 @@ class SacredFireStatusDialog extends ConsumerWidget {
         child: gamificationStateAsync.when(
           loading: () => _buildLoadingDialog(context),
           error: (err, _) => _buildErrorDialog(context, err.toString()),
-          data: (state) => relicsAsync.when(
-            loading: () => _buildLoadingDialog(context),
-            error: (err, _) => _buildErrorDialog(context, err.toString()),
-            data: (relics) => _buildDialogContent(context, state, relics),
-          ),
+          data:
+              (state) => relicsAsync.when(
+                loading: () => _buildLoadingDialog(context),
+                error: (err, _) => _buildErrorDialog(context, err.toString()),
+                data: (relics) => _buildDialogContent(context, state, relics),
+              ),
         ),
       ),
     );
@@ -66,7 +67,9 @@ class SacredFireStatusDialog extends ConsumerWidget {
             const SizedBox(height: 16),
             Text(
               'Consultando el Fuego Sagrado...',
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: AppColors.pergaminoClaro),
+              style: Theme.of(
+                context,
+              ).textTheme.bodyLarge?.copyWith(color: AppColors.pergaminoClaro),
             ),
           ],
         ),
@@ -85,22 +88,33 @@ class SacredFireStatusDialog extends ConsumerWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.error_outline_rounded, color: AppColors.rojoGrana, size: 48),
+          const Icon(
+            Icons.error_outline_rounded,
+            color: AppColors.rojoGrana,
+            size: 48,
+          ),
           const SizedBox(height: 16),
           Text(
             'Error al consultar el Fuego',
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(color: AppColors.pergaminoClaro),
+            style: Theme.of(
+              context,
+            ).textTheme.titleLarge?.copyWith(color: AppColors.pergaminoClaro),
           ),
           const SizedBox(height: 8),
           Text(
             error,
             textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.pergaminoClaro.withValues(alpha: 0.7)),
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: AppColors.pergaminoClaro.withValues(alpha: 0.7),
+            ),
           ),
           const SizedBox(height: 16),
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cerrar', style: TextStyle(color: AppColors.jade)),
+            child: const Text(
+              'Cerrar',
+              style: TextStyle(color: AppColors.jade),
+            ),
           ),
         ],
       ),
@@ -176,7 +190,10 @@ class SacredFireStatusDialog extends ConsumerWidget {
         color: tier.primaryColor.withValues(alpha: 0.15),
         borderRadius: const BorderRadius.vertical(top: Radius.circular(22)),
         border: Border(
-          bottom: BorderSide(color: tier.primaryColor.withValues(alpha: 0.3), width: 1.5),
+          bottom: BorderSide(
+            color: tier.primaryColor.withValues(alpha: 0.3),
+            width: 1.5,
+          ),
         ),
       ),
       child: Column(
@@ -192,10 +209,10 @@ class SacredFireStatusDialog extends ConsumerWidget {
             tier.displayName,
             textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  color: tier.primaryColor,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 0.5,
-                ),
+              color: tier.primaryColor,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 0.5,
+            ),
           ),
           const SizedBox(height: 4),
           // Días de racha
@@ -205,15 +222,19 @@ class SacredFireStatusDialog extends ConsumerWidget {
                 : 'Racha actual: $streak ${streak == 1 ? 'día' : 'días'}',
             textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: AppColors.pergaminoClaro.withValues(alpha: 0.8),
-                ),
+              color: AppColors.pergaminoClaro.withValues(alpha: 0.8),
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildStreakSection(BuildContext context, GamificationState state, SacredFireTier tier) {
+  Widget _buildStreakSection(
+    BuildContext context,
+    GamificationState state,
+    SacredFireTier tier,
+  ) {
     // A 200% de escala de texto (textScale > 1.4), apilar las dos tarjetas
     // en vertical para evitar overflow en columnas estrechas (~156px).
     final textScale = MediaQuery.textScalerOf(context).scale(1);
@@ -231,14 +252,18 @@ class SacredFireStatusDialog extends ConsumerWidget {
         children: [
           Row(
             children: [
-              Icon(Icons.local_fire_department_rounded, color: tier.primaryColor, size: 22),
+              Icon(
+                Icons.local_fire_department_rounded,
+                color: tier.primaryColor,
+                size: 22,
+              ),
               const SizedBox(width: 10),
               Text(
                 'Fuego Sagrado',
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color: AppColors.pergaminoClaro,
-                      fontWeight: FontWeight.w700,
-                    ),
+                  color: AppColors.pergaminoClaro,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
             ],
           ),
@@ -251,7 +276,11 @@ class SacredFireStatusDialog extends ConsumerWidget {
               tier.primaryColor,
             ),
             const SizedBox(height: 12),
-            Container(width: double.infinity, height: 1, color: tier.primaryColor.withValues(alpha: 0.2)),
+            Container(
+              width: double.infinity,
+              height: 1,
+              color: tier.primaryColor.withValues(alpha: 0.2),
+            ),
             const SizedBox(height: 12),
             _buildStatItem(
               context,
@@ -270,7 +299,11 @@ class SacredFireStatusDialog extends ConsumerWidget {
                     tier.primaryColor,
                   ),
                 ),
-                Container(width: 1, height: 40, color: tier.primaryColor.withValues(alpha: 0.2)),
+                Container(
+                  width: 1,
+                  height: 40,
+                  color: tier.primaryColor.withValues(alpha: 0.2),
+                ),
                 Expanded(
                   child: _buildStatItem(
                     context,
@@ -287,30 +320,39 @@ class SacredFireStatusDialog extends ConsumerWidget {
     );
   }
 
-  Widget _buildStatItem(BuildContext context, String label, String value, Color valueColor) {
+  Widget _buildStatItem(
+    BuildContext context,
+    String label,
+    String value,
+    Color valueColor,
+  ) {
     return Column(
       children: [
         Text(
           label,
           textAlign: TextAlign.center,
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: AppColors.pergaminoClaro.withValues(alpha: 0.6),
-              ),
+            color: AppColors.pergaminoClaro.withValues(alpha: 0.6),
+          ),
         ),
         const SizedBox(height: 4),
         Text(
           value,
           textAlign: TextAlign.center,
           style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                color: valueColor,
-                fontWeight: FontWeight.bold,
-              ),
+            color: valueColor,
+            fontWeight: FontWeight.bold,
+          ),
         ),
       ],
     );
   }
 
-  Widget _buildQuetzalSection(BuildContext context, GamificationState state, QuetzalEvolutionStage stage) {
+  Widget _buildQuetzalSection(
+    BuildContext context,
+    GamificationState state,
+    QuetzalEvolutionStage stage,
+  ) {
     // A 200% de escala de texto (textScale > 1.4), apilar las dos tarjetas
     // en vertical para evitar overflow en columnas estrechas (~156px).
     final textScale = MediaQuery.textScalerOf(context).scale(1);
@@ -336,15 +378,19 @@ class SacredFireStatusDialog extends ConsumerWidget {
                   shape: BoxShape.circle,
                   border: Border.all(color: AppColors.jade, width: 1.5),
                 ),
-                child: const Icon(Icons.auto_awesome_rounded, color: AppColors.jade, size: 20),
+                child: const Icon(
+                  Icons.auto_awesome_rounded,
+                  color: AppColors.jade,
+                  size: 20,
+                ),
               ),
               const SizedBox(width: 10),
               Text(
                 'Quetzalcóatl',
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color: AppColors.pergaminoClaro,
-                      fontWeight: FontWeight.w700,
-                    ),
+                  color: AppColors.pergaminoClaro,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
             ],
           ),
@@ -357,7 +403,11 @@ class SacredFireStatusDialog extends ConsumerWidget {
               AppColors.jade,
             ),
             const SizedBox(height: 12),
-            Container(width: double.infinity, height: 1, color: AppColors.jade.withValues(alpha: 0.2)),
+            Container(
+              width: double.infinity,
+              height: 1,
+              color: AppColors.jade.withValues(alpha: 0.2),
+            ),
             const SizedBox(height: 12),
             _buildXpProgress(context, state, stage),
           ] else ...[
@@ -371,10 +421,12 @@ class SacredFireStatusDialog extends ConsumerWidget {
                     AppColors.jade,
                   ),
                 ),
-                Container(width: 1, height: 40, color: AppColors.jade.withValues(alpha: 0.2)),
-                Expanded(
-                  child: _buildXpProgress(context, state, stage),
+                Container(
+                  width: 1,
+                  height: 40,
+                  color: AppColors.jade.withValues(alpha: 0.2),
                 ),
+                Expanded(child: _buildXpProgress(context, state, stage)),
               ],
             ),
           ],
@@ -383,13 +435,18 @@ class SacredFireStatusDialog extends ConsumerWidget {
     );
   }
 
-  Widget _buildXpProgress(BuildContext context, GamificationState state, QuetzalEvolutionStage stage) {
+  Widget _buildXpProgress(
+    BuildContext context,
+    GamificationState state,
+    QuetzalEvolutionStage stage,
+  ) {
     final nextStage = _getNextStage(stage);
     final currentMinXp = stage.minXp;
     final nextMinXp = nextStage?.minXp ?? state.quetzalXp;
-    final progress = nextStage != null
-        ? (state.quetzalXp - currentMinXp) / (nextMinXp - currentMinXp)
-        : 1.0;
+    final progress =
+        nextStage != null
+            ? (state.quetzalXp - currentMinXp) / (nextMinXp - currentMinXp)
+            : 1.0;
 
     // Usar Wrap para que a 200% de escala de texto los elementos pasen a la
     // siguiente línea sin desbordarse (fix overflow línea ~356).
@@ -405,16 +462,16 @@ class SacredFireStatusDialog extends ConsumerWidget {
             Text(
               'XP: ${state.quetzalXp}',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: AppColors.pergaminoClaro,
-                    fontWeight: FontWeight.w600,
-                  ),
+                color: AppColors.pergaminoClaro,
+                fontWeight: FontWeight.w600,
+              ),
             ),
             if (nextStage != null)
               Text(
                 'Siguiente: $nextMinXp',
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: AppColors.pergaminoClaro.withValues(alpha: 0.6),
-                    ),
+                  color: AppColors.pergaminoClaro.withValues(alpha: 0.6),
+                ),
               ),
           ],
         ),
@@ -433,14 +490,18 @@ class SacredFireStatusDialog extends ConsumerWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.menu_book_rounded, size: 14, color: AppColors.pergaminoClaro.withValues(alpha: 0.6)),
+            Icon(
+              Icons.menu_book_rounded,
+              size: 14,
+              color: AppColors.pergaminoClaro.withValues(alpha: 0.6),
+            ),
             const SizedBox(width: 4),
             Flexible(
               child: Text(
                 '${state.feathersCount} Plumas de Sabiduría',
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: AppColors.pergaminoClaro.withValues(alpha: 0.7),
-                    ),
+                  color: AppColors.pergaminoClaro.withValues(alpha: 0.7),
+                ),
                 overflow: TextOverflow.ellipsis,
               ),
             ),
@@ -457,7 +518,10 @@ class SacredFireStatusDialog extends ConsumerWidget {
     return null;
   }
 
-  Widget _buildXolotlShieldsSection(BuildContext context, GamificationState state) {
+  Widget _buildXolotlShieldsSection(
+    BuildContext context,
+    GamificationState state,
+  ) {
     const maxShields = 2;
     final currentShields = state.xolotlShields.clamp(0, maxShields);
 
@@ -478,9 +542,9 @@ class SacredFireStatusDialog extends ConsumerWidget {
               Text(
                 'Manto de Xólotl',
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color: AppColors.pergaminoClaro,
-                      fontWeight: FontWeight.w700,
-                    ),
+                  color: AppColors.pergaminoClaro,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
             ],
           ),
@@ -488,8 +552,8 @@ class SacredFireStatusDialog extends ConsumerWidget {
           Text(
             'Escudos que protegen tu racha si pierdes un día.',
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: AppColors.pergaminoClaro.withValues(alpha: 0.6),
-                ),
+              color: AppColors.pergaminoClaro.withValues(alpha: 0.6),
+            ),
           ),
           const SizedBox(height: 12),
           Row(
@@ -499,33 +563,48 @@ class SacredFireStatusDialog extends ConsumerWidget {
               return Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 8),
                 child: Semantics(
-                  label: isActive ? 'Escudo ${index + 1} activo' : 'Escudo ${index + 1} disponible',
+                  label:
+                      isActive
+                          ? 'Escudo ${index + 1} activo'
+                          : 'Escudo ${index + 1} disponible',
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 300),
                     width: 56,
                     height: 56,
                     decoration: BoxDecoration(
-                      color: isActive
-                          ? AppColors.turquesa.withValues(alpha: 0.2)
-                          : AppColors.pergaminoClaro.withValues(alpha: 0.05),
+                      color:
+                          isActive
+                              ? AppColors.turquesa.withValues(alpha: 0.2)
+                              : AppColors.pergaminoClaro.withValues(
+                                alpha: 0.05,
+                              ),
                       shape: BoxShape.circle,
                       border: Border.all(
-                        color: isActive ? AppColors.turquesa : AppColors.turquesa.withValues(alpha: 0.3),
+                        color:
+                            isActive
+                                ? AppColors.turquesa
+                                : AppColors.turquesa.withValues(alpha: 0.3),
                         width: isActive ? 2.5 : 1.5,
                       ),
-                      boxShadow: isActive
-                          ? [
-                              BoxShadow(
-                                color: AppColors.turquesa.withValues(alpha: 0.3),
-                                blurRadius: 12,
-                                spreadRadius: 2,
-                              ),
-                            ]
-                          : null,
+                      boxShadow:
+                          isActive
+                              ? [
+                                BoxShadow(
+                                  color: AppColors.turquesa.withValues(
+                                    alpha: 0.3,
+                                  ),
+                                  blurRadius: 12,
+                                  spreadRadius: 2,
+                                ),
+                              ]
+                              : null,
                     ),
                     child: Icon(
                       isActive ? Icons.shield_rounded : Icons.shield_outlined,
-                      color: isActive ? AppColors.turquesa : AppColors.turquesa.withValues(alpha: 0.4),
+                      color:
+                          isActive
+                              ? AppColors.turquesa
+                              : AppColors.turquesa.withValues(alpha: 0.4),
                       size: 28,
                     ),
                   ),
@@ -538,9 +617,12 @@ class SacredFireStatusDialog extends ConsumerWidget {
             child: Text(
               '$currentShields / $maxShields escudos',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: currentShields > 0 ? AppColors.turquesa : AppColors.pergaminoClaro.withValues(alpha: 0.6),
-                    fontWeight: FontWeight.w600,
-                  ),
+                color:
+                    currentShields > 0
+                        ? AppColors.turquesa
+                        : AppColors.pergaminoClaro.withValues(alpha: 0.6),
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
         ],
@@ -570,9 +652,9 @@ class SacredFireStatusDialog extends ConsumerWidget {
                 child: Text(
                   'Reliquias Desbloqueadas',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: AppColors.pergaminoClaro,
-                        fontWeight: FontWeight.w700,
-                      ),
+                    color: AppColors.pergaminoClaro,
+                    fontWeight: FontWeight.w700,
+                  ),
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
@@ -583,21 +665,25 @@ class SacredFireStatusDialog extends ConsumerWidget {
             Center(
               child: Column(
                 children: [
-                  Icon(Icons.lock_outline_rounded, color: AppColors.pergaminoClaro.withValues(alpha: 0.3), size: 32),
+                  Icon(
+                    Icons.lock_outline_rounded,
+                    color: AppColors.pergaminoClaro.withValues(alpha: 0.3),
+                    size: 32,
+                  ),
                   const SizedBox(height: 8),
                   Text(
                     'Aún no has desbloqueado reliquias',
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: AppColors.pergaminoClaro.withValues(alpha: 0.6),
-                        ),
+                      color: AppColors.pergaminoClaro.withValues(alpha: 0.6),
+                    ),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     'Escribe en tu diario, cosecha plantas\ny escribe de noche para invocar a los dioses.',
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: AppColors.pergaminoClaro.withValues(alpha: 0.4),
-                        ),
+                      color: AppColors.pergaminoClaro.withValues(alpha: 0.4),
+                    ),
                   ),
                 ],
               ),
@@ -607,7 +693,10 @@ class SacredFireStatusDialog extends ConsumerWidget {
               spacing: 12,
               runSpacing: 12,
               alignment: WrapAlignment.center,
-              children: relics.map((relic) => _buildRelicCard(context, relic)).toList(),
+              children:
+                  relics
+                      .map((relic) => _buildRelicCard(context, relic))
+                      .toList(),
             ),
         ],
       ),
@@ -648,17 +737,17 @@ class SacredFireStatusDialog extends ConsumerWidget {
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
               style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                    color: AppColors.pergaminoClaro,
-                    fontWeight: FontWeight.w600,
-                  ),
+                color: AppColors.pergaminoClaro,
+                fontWeight: FontWeight.w600,
+              ),
             ),
             const SizedBox(height: 4),
             Text(
               _getRelicShortDescription(catalog),
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                    color: AppColors.pergaminoClaro.withValues(alpha: 0.5),
-                  ),
+                color: AppColors.pergaminoClaro.withValues(alpha: 0.5),
+              ),
             ),
           ],
         ),
@@ -711,7 +800,10 @@ class SacredFireStatusDialog extends ConsumerWidget {
               padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 32),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [AppColors.jade, AppColors.jade.withValues(alpha: 0.8)],
+                  colors: [
+                    AppColors.jade,
+                    AppColors.jade.withValues(alpha: 0.8),
+                  ],
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                 ),
@@ -744,7 +836,7 @@ class SacredFireStatusDialog extends ConsumerWidget {
   }
 }
 
-/// Llama animada del Fuego Sagrado.
+/// Llama animada del Fuego Sagrado (brasero teotihuacano + llama viva).
 class _AnimatedFlame extends StatefulWidget {
   const _AnimatedFlame({required this.tier});
 
@@ -754,14 +846,15 @@ class _AnimatedFlame extends StatefulWidget {
   State<_AnimatedFlame> createState() => _AnimatedFlameState();
 }
 
-class _AnimatedFlameState extends State<_AnimatedFlame> with SingleTickerProviderStateMixin {
+class _AnimatedFlameState extends State<_AnimatedFlame>
+    with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
 
   @override
   void initState() {
     super.initState();
     _controller = AnimationController(
-      duration: const Duration(milliseconds: 1200),
+      duration: const Duration(milliseconds: 1400),
       vsync: this,
     )..repeat(reverse: true);
   }
@@ -774,13 +867,14 @@ class _AnimatedFlameState extends State<_AnimatedFlame> with SingleTickerProvide
 
   @override
   Widget build(BuildContext context) {
+    final reduceMotion = MediaQuery.disableAnimationsOf(context);
     return AnimatedBuilder(
       animation: _controller,
       builder: (context, child) {
         return CustomPaint(
-          size: const Size(100, 100),
+          size: const Size(116, 116),
           painter: _FlamePainter(
-            progress: _controller.value,
+            progress: reduceMotion ? 0.5 : _controller.value,
             tier: widget.tier,
           ),
         );
@@ -797,90 +891,153 @@ class _FlamePainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final centerX = size.width / 2;
-    final baseY = size.height * 0.9;
+    final cx = size.width / 2;
+    final brazierBottom = size.height * 0.94;
+    final bowlTop = size.height * 0.72;
     final colors = tier.gradientColors;
 
-    // Base del brasero
-    final basePaint = Paint()
-      ..color = AppColors.obsidiana.withValues(alpha: 0.6)
-      ..style = PaintingStyle.fill;
+    final primaryFlame =
+        colors.isNotEmpty ? colors.first : const Color(0xFFFF6B35);
+    final midFlame = colors.length > 1 ? colors[1] : const Color(0xFFFFA726);
 
-    final basePath = Path()
-      ..moveTo(centerX - 30, baseY)
-      ..lineTo(centerX + 30, baseY)
-      ..lineTo(centerX + 20, baseY - 15)
-      ..lineTo(centerX - 20, baseY - 15)
-      ..close();
-    canvas.drawPath(basePath, basePaint);
-
-    // Llamas (3 capas con diferentes fases)
-    for (var i = 0; i < 3; i++) {
-      _drawFlameLayer(canvas, centerX, baseY - 15, i, colors);
-    }
-
-    // Resplandor central
-    final glowPaint = Paint()
-      ..color = colors.first.withValues(alpha: 0.3 * (0.8 + 0.2 * progress))
-      ..style = PaintingStyle.fill
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 16);
-
+    // 1. Halo cálido detrás de la llama
     canvas.drawCircle(
-      Offset(centerX, baseY - 40 - 10 * progress),
-      30 + 10 * progress,
-      glowPaint,
-    );
-  }
-
-  void _drawFlameLayer(Canvas canvas, double centerX, double baseY, int layerIndex, List<Color> colors) {
-    final layerProgress = progress + layerIndex * 0.3;
-    final flicker = math.sin(layerProgress * 2 * 3.14159).abs();
-    final height = 50 + 15 * flicker;
-    final width = 18 + 6 * flicker;
-    final offsetX = (layerIndex - 1) * 8 + 4 * math.sin(layerProgress * 3.14159);
-
-    final gradient = LinearGradient(
-      begin: Alignment.bottomCenter,
-      end: Alignment.topCenter,
-      colors: [
-        colors[0].withValues(alpha: 0.9),
-        if (colors.length > 1) colors[1].withValues(alpha: 0.7) else colors[0].withValues(alpha: 0.5),
-        if (colors.length > 2) colors[2].withValues(alpha: 0.4) else colors.last.withValues(alpha: 0.3),
-        Colors.white.withValues(alpha: 0.2 * flicker),
-      ],
-      stops: const [0.0, 0.4, 0.7, 1.0],
+      Offset(cx, bowlTop - 26),
+      34 + 5 * progress,
+      Paint()
+        ..color = primaryFlame.withValues(alpha: 0.28 + 0.1 * progress)
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 18),
     );
 
-    final flamePaint = Paint()
-      ..shader = gradient.createShader(
-        Rect.fromLTWH(centerX + offsetX - width / 2, baseY - height, width, height),
-      )
-      ..style = PaintingStyle.fill;
+    // 2. Llama exterior (silueta de fuego clara e inconfundible)
+    final sway = math.sin(progress * math.pi * 2) * 3.0;
+    final outerH = 56.0 + 7.0 * progress;
+    final outerFlame =
+        Path()
+          ..moveTo(cx + sway, bowlTop - outerH)
+          ..cubicTo(
+            cx + 28,
+            bowlTop - outerH * 0.55,
+            cx + 30,
+            bowlTop - 6,
+            cx,
+            bowlTop + 2,
+          )
+          ..cubicTo(
+            cx - 30,
+            bowlTop - 6,
+            cx - 28,
+            bowlTop - outerH * 0.55,
+            cx + sway,
+            bowlTop - outerH,
+          )
+          ..close();
 
-    final flamePath = Path();
-    flamePath.moveTo(centerX + offsetX, baseY);
+    canvas.drawPath(
+      outerFlame,
+      Paint()
+        ..shader = LinearGradient(
+          begin: Alignment.bottomCenter,
+          end: Alignment.topCenter,
+          colors: [const Color(0xFFD84315), primaryFlame, midFlame],
+        ).createShader(
+          Rect.fromLTWH(cx - 30, bowlTop - outerH, 60, outerH + 4),
+        ),
+    );
 
-    // Lado izquierdo
-    for (var t = 0.0; t <= 1.0; t += 0.1) {
-      final wave = math.sin(t * 3.14159 * 2 + layerProgress * 2) * width * 0.25;
-      final y = baseY - t * height;
-      final x = centerX + offsetX - width / 2 + wave;
-      flamePath.lineTo(x, y);
+    // 3. Llama intermedia (dorada brillante)
+    final midH = 40.0 + 5.0 * (1 - progress);
+    final midPath =
+        Path()
+          ..moveTo(cx - sway * 0.6, bowlTop - midH)
+          ..cubicTo(
+            cx + 18,
+            bowlTop - midH * 0.5,
+            cx + 19,
+            bowlTop - 4,
+            cx,
+            bowlTop + 1,
+          )
+          ..cubicTo(
+            cx - 19,
+            bowlTop - 4,
+            cx - 18,
+            bowlTop - midH * 0.5,
+            cx - sway * 0.6,
+            bowlTop - midH,
+          )
+          ..close();
+
+    canvas.drawPath(
+      midPath,
+      Paint()
+        ..shader = const LinearGradient(
+          begin: Alignment.bottomCenter,
+          end: Alignment.topCenter,
+          colors: [Color(0xFFFF9800), Color(0xFFFFD166)],
+        ).createShader(Rect.fromLTWH(cx - 20, bowlTop - midH, 40, midH + 2)),
+    );
+
+    // 4. Núcleo blanco-dorado de la llama
+    final coreH = 22.0 + 3.0 * progress;
+    final corePath =
+        Path()
+          ..moveTo(cx, bowlTop - coreH)
+          ..quadraticBezierTo(cx + 10, bowlTop - coreH * 0.35, cx, bowlTop)
+          ..quadraticBezierTo(
+            cx - 10,
+            bowlTop - coreH * 0.35,
+            cx,
+            bowlTop - coreH,
+          )
+          ..close();
+    canvas.drawPath(corePath, Paint()..color = const Color(0xFFFFF8E1));
+
+    // 5. Chispas ascendentes
+    final sparkPaint =
+        Paint()..color = const Color(0xFFFFE082).withValues(alpha: 0.9);
+    final sparks = [
+      Offset(cx - 18, bowlTop - 46 - progress * 10),
+      Offset(cx + 20, bowlTop - 52 - (1 - progress) * 9),
+      Offset(cx + 6, bowlTop - 64 - progress * 8),
+    ];
+    for (var i = 0; i < sparks.length; i++) {
+      canvas.drawCircle(sparks[i], i == 2 ? 2.2 : 1.8, sparkPaint);
     }
 
-    // Punta
-    flamePath.lineTo(centerX + offsetX, baseY - height);
+    // 6. Brasero de piedra teotihuacano con carbones encendidos
+    canvas.drawOval(
+      Rect.fromCenter(center: Offset(cx, bowlTop + 1), width: 54, height: 10),
+      Paint()..color = const Color(0xFFFF6D00).withValues(alpha: 0.75),
+    );
 
-    // Lado derecho
-    for (var t = 1.0; t >= 0.0; t -= 0.1) {
-      final wave = math.sin(t * 3.14159 * 2 + layerProgress * 2 + 1) * width * 0.25;
-      final y = baseY - t * height;
-      final x = centerX + offsetX + width / 2 + wave;
-      flamePath.lineTo(x, y);
-    }
+    final brazierPath =
+        Path()
+          ..moveTo(cx - 32, bowlTop)
+          ..lineTo(cx + 32, bowlTop)
+          ..lineTo(cx + 22, bowlTop + 13)
+          ..lineTo(cx + 27, brazierBottom)
+          ..lineTo(cx - 27, brazierBottom)
+          ..lineTo(cx - 22, bowlTop + 13)
+          ..close();
+    canvas.drawPath(brazierPath, Paint()..color = const Color(0xFF3E3A37));
 
-    flamePath.close();
-    canvas.drawPath(flamePath, flamePaint);
+    // Borde superior e insignia dorada en el brasero
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromCenter(center: Offset(cx, bowlTop + 2), width: 68, height: 6),
+        const Radius.circular(3),
+      ),
+      Paint()..color = const Color(0xFF5D534B),
+    );
+    canvas.drawLine(
+      Offset(cx - 16, bowlTop + 12),
+      Offset(cx + 16, bowlTop + 12),
+      Paint()
+        ..color = AppColors.oro.withValues(alpha: 0.85)
+        ..strokeWidth = 2.0
+        ..strokeCap = StrokeCap.round,
+    );
   }
 
   @override

@@ -851,7 +851,7 @@ testWidgets('sin consentimiento no se avanza del paso de consentimiento', (teste
 
       // 6. Preferences -> Finalizar (defaults off)
       await tester.tap(find.text('Finalizar y Entrar'));
-      await tester.pumpAndSettle();
+      await tester.pump(); // TeotihuacanValleyScreen tiene animación infinita de partículas nocturnas
 
       // 7. Debe haber llegado a la pantalla principal (como no hay biometría, se desbloquea directo)
       // Lo importante es que el onboarding se marcó como completado

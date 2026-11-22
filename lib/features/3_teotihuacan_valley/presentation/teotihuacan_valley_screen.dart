@@ -27,7 +27,9 @@ import 'package:mi_calli/features/3_teotihuacan_valley/presentation/widgets/vall
 import 'package:mi_calli/features/3_teotihuacan_valley/presentation/widgets/valley_weather_particles_layer.dart';
 
 /// Clave global para la pantalla completa (tests de integración).
-final GlobalKey teotihuacanValleyScreenKey = GlobalKey(debugLabel: 'teotihuacanValleyScreen');
+final GlobalKey teotihuacanValleyScreenKey = GlobalKey(
+  debugLabel: 'teotihuacanValleyScreen',
+);
 
 /// Pantalla principal del Valle de Teotihuacán.
 ///
@@ -65,35 +67,44 @@ class TeotihuacanValleyScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     // Leer estado reactivo del audio ambiental
     final providerTimePhase = ref.watch(ambientAudioCurrentTimePhaseProvider);
-    final providerEmotionOverride = ref.watch(ambientAudioCurrentEmotionOverrideProvider);
-    final hasTlalocRelic = ref.watch(userRelicsProvider).maybeWhen(
-      data: (relics) => relics.any((r) => r.deity == DeityId.tlaloc),
-      orElse: () => false,
+    final providerEmotionOverride = ref.watch(
+      ambientAudioCurrentEmotionOverrideProvider,
     );
-    final hasXochiquetzalRelic = ref.watch(userRelicsProvider).maybeWhen(
-      data: (relics) => relics.any((r) => r.deity == DeityId.xochiquetzal),
-      orElse: () => false,
-    );
-    final hasXolotlRelic = ref.watch(userRelicsProvider).maybeWhen(
-      data: (relics) => relics.any((r) => r.deity == DeityId.xolotl),
-      orElse: () => false,
-    );
+    final hasTlalocRelic = ref
+        .watch(userRelicsProvider)
+        .maybeWhen(
+          data: (relics) => relics.any((r) => r.deity == DeityId.tlaloc),
+          orElse: () => false,
+        );
+    final hasXochiquetzalRelic = ref
+        .watch(userRelicsProvider)
+        .maybeWhen(
+          data: (relics) => relics.any((r) => r.deity == DeityId.xochiquetzal),
+          orElse: () => false,
+        );
+    final hasXolotlRelic = ref
+        .watch(userRelicsProvider)
+        .maybeWhen(
+          data: (relics) => relics.any((r) => r.deity == DeityId.xolotl),
+          orElse: () => false,
+        );
     // Disponibilidad de la lectura del Tonalpohualli (Constelación de Venus)
-    final isVenusAvailable = ref.watch(isTonalpohualliAvailableProvider).maybeWhen(
-      data: (available) => available,
-      orElse: () => false,
-    );
+    final isVenusAvailable = ref
+        .watch(isTonalpohualliAvailableProvider)
+        .maybeWhen(data: (available) => available, orElse: () => false);
 
     // Resolver fase horaria: override > provider > hora local actual
-    final resolvedTimePhase = currentTimeOverride != null
-        ? ValleyTimePhase.fromHour(currentTimeOverride!.toLocal().hour)
-        : providerTimePhase;
+    final resolvedTimePhase =
+        currentTimeOverride != null
+            ? ValleyTimePhase.fromHour(currentTimeOverride!.toLocal().hour)
+            : providerTimePhase;
 
     // Resolver clima emocional: override > provider
     final resolvedEmotionOverride = emotionOverride ?? providerEmotionOverride;
 
     // Xólotl es visible de noche O si tiene la reliquia de noche
-    final showXolotl = resolvedTimePhase == ValleyTimePhase.night || hasXolotlRelic;
+    final showXolotl =
+        resolvedTimePhase == ValleyTimePhase.night || hasXolotlRelic;
 
     return OrientationBuilder(
       builder: (context, orientation) {
@@ -154,9 +165,7 @@ class _ValleyStack extends ConsumerWidget {
     // Callbacks para las 5 zonas táctiles
     void openSanctuaryJournal() {
       Navigator.of(context).push(
-        MaterialPageRoute<void>(
-          builder: (_) => const SanctuaryJournalScreen(),
-        ),
+        MaterialPageRoute<void>(builder: (_) => const SanctuaryJournalScreen()),
       );
     }
 
@@ -170,9 +179,7 @@ class _ValleyStack extends ConsumerWidget {
 
     void openCodex() {
       Navigator.of(context).push(
-        MaterialPageRoute<void>(
-          builder: (_) => const PrivateCodexScreen(),
-        ),
+        MaterialPageRoute<void>(builder: (_) => const PrivateCodexScreen()),
       );
     }
 
@@ -187,7 +194,9 @@ class _ValleyStack extends ConsumerWidget {
       } else if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('No hay entradas suficientes para la lectura astral esta semana'),
+            content: Text(
+              'No hay entradas suficientes para la lectura astral esta semana',
+            ),
             behavior: SnackBarBehavior.floating,
           ),
         );
@@ -253,9 +262,6 @@ class _ValleyStack extends ConsumerWidget {
 
         // Layer 4: HUD Superior con 3 botones flotantes
         ValleyTopHudLayer(
-          onOpenSettings: () {
-            // El HUD maneja su propio modal provisional de ajustes
-          },
           onOpenSanctuaryJournal: openSanctuaryJournal,
           onOpenCodex: openCodex,
         ),
@@ -318,10 +324,11 @@ class _StaticWeatherPainter extends CustomPainter {
   }
 
   void _drawStaticRain(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = const Color(0xFF48CAE4).withValues(alpha: 0.5)
-      ..strokeWidth = 1.0
-      ..strokeCap = StrokeCap.round;
+    final paint =
+        Paint()
+          ..color = const Color(0xFF48CAE4).withValues(alpha: 0.5)
+          ..strokeWidth = 1.0
+          ..strokeCap = StrokeCap.round;
 
     const dropCount = 40;
     for (var i = 0; i < dropCount; i++) {
@@ -338,11 +345,12 @@ class _StaticWeatherPainter extends CustomPainter {
   }
 
   void _drawStaticWind(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = const Color(0xFF48CAE4).withValues(alpha: 0.35)
-      ..strokeWidth = 1.2
-      ..strokeCap = StrokeCap.round
-      ..style = PaintingStyle.stroke;
+    final paint =
+        Paint()
+          ..color = const Color(0xFF48CAE4).withValues(alpha: 0.35)
+          ..strokeWidth = 1.2
+          ..strokeCap = StrokeCap.round
+          ..style = PaintingStyle.stroke;
 
     const streamCount = 8;
     for (var i = 0; i < streamCount; i++) {
@@ -365,27 +373,30 @@ class _StaticWeatherPainter extends CustomPainter {
     // Viento estático
     _drawStaticWind(canvas, size);
     // Relámpago estático (una línea zigzag)
-    final paint = Paint()
-      ..color = Colors.white.withValues(alpha: 0.6)
-      ..strokeWidth = 2.0
-      ..strokeCap = StrokeCap.round
-      ..style = PaintingStyle.stroke;
+    final paint =
+        Paint()
+          ..color = Colors.white.withValues(alpha: 0.6)
+          ..strokeWidth = 2.0
+          ..strokeCap = StrokeCap.round
+          ..style = PaintingStyle.stroke;
 
-    final path = Path()
-      ..moveTo(size.width * 0.3, 0)
-      ..lineTo(size.width * 0.35, size.height * 0.2)
-      ..lineTo(size.width * 0.28, size.height * 0.2)
-      ..lineTo(size.width * 0.38, size.height * 0.5)
-      ..lineTo(size.width * 0.32, size.height * 0.5)
-      ..lineTo(size.width * 0.38, size.height * 0.8);
+    final path =
+        Path()
+          ..moveTo(size.width * 0.3, 0)
+          ..lineTo(size.width * 0.35, size.height * 0.2)
+          ..lineTo(size.width * 0.28, size.height * 0.2)
+          ..lineTo(size.width * 0.38, size.height * 0.5)
+          ..lineTo(size.width * 0.32, size.height * 0.5)
+          ..lineTo(size.width * 0.38, size.height * 0.8);
 
     canvas.drawPath(path, paint);
   }
 
   void _drawStaticStars(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = Colors.white.withValues(alpha: 0.7)
-      ..style = PaintingStyle.fill;
+    final paint =
+        Paint()
+          ..color = Colors.white.withValues(alpha: 0.7)
+          ..style = PaintingStyle.fill;
 
     const starCount = 50;
     for (var i = 0; i < starCount; i++) {
@@ -399,9 +410,10 @@ class _StaticWeatherPainter extends CustomPainter {
   }
 
   void _drawStaticFireflies(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = const Color(0xFFE9C46A).withValues(alpha: 0.6)
-      ..style = PaintingStyle.fill;
+    final paint =
+        Paint()
+          ..color = const Color(0xFFE9C46A).withValues(alpha: 0.6)
+          ..style = PaintingStyle.fill;
 
     const fireflyCount = 15;
     for (var i = 0; i < fireflyCount; i++) {
