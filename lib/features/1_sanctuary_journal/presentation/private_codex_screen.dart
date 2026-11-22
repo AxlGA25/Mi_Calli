@@ -1,9 +1,7 @@
-// PrivateCodexScreen - Códice Privado con autenticación biométrica y Calendario Agrícola.
+﻿// PrivateCodexScreen - Códice Privado con autenticación biométrica y Calendario Agrícola.
 //
-// Rediseño estilo códice teotihuacano en papel amate y obsidiana/oro:
-// - Header con SafeArea y cenefa dorada
-// - Selector de mes estilizado y barra de días de la semana (L M M J V S D)
-// - Cuadrícula de parcelas limpias con soporte completo a 200% texto
+// Incluye Hero desde el Templo del Códice, AnimatedSwitcher en cambio de mes,
+// Skeleton Loading (AmateShimmerBox), BouncyTap táctil y alto contraste.
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -14,6 +12,7 @@ import 'package:mi_calli/core/constants/app_colors.dart';
 import 'package:mi_calli/core/database/asset_loader_service.dart';
 import 'package:mi_calli/core/security/biometric_auth_interface.dart';
 import 'package:mi_calli/core/security/biometric_vault_service.dart';
+import 'package:mi_calli/core/widgets/mi_calli_animations.dart';
 import 'package:mi_calli/features/1_sanctuary_journal/data/diary_repository_provider.dart';
 import 'package:mi_calli/features/1_sanctuary_journal/models/diary_entry.dart';
 import 'package:mi_calli/features/1_sanctuary_journal/models/prehispanic_emotion.dart';
@@ -176,8 +175,10 @@ final privateCodexEmotionFilterProvider = StateProvider<CodexEmotionFilter>(
   (ref) => CodexEmotionFilter.all,
 );
 
+typedef CodexDayEntriesMap = Map<int, List<DiaryEntry>>;
+
 final privateCodexMonthEntriesProvider =
-    FutureProvider.autoDispose<Map<int, List<DiaryEntry>>>((ref) async {
+    FutureProvider.autoDispose<CodexDayEntriesMap>((ref) async {
       final currentMonth = ref.watch(privateCodexCurrentMonthProvider);
       final filter = ref.watch(privateCodexEmotionFilterProvider);
       final repository = ref.watch(diaryRepositoryProvider);
@@ -198,7 +199,7 @@ final privateCodexMonthEntriesProvider =
         end: endOfMonth,
       );
 
-      final Map<int, List<DiaryEntry>> entriesByDay = {};
+      final CodexDayEntriesMap entriesByDay = {};
       for (final entry in entries) {
         final localDay = entry.createdAt.toLocal().day;
         if (filter.emotion != null && entry.emotion != filter.emotion) {
@@ -338,7 +339,7 @@ class PrivateCodexScreen extends ConsumerWidget {
     };
   }
 
-  /// Vista bloqueada (Bóveda de Obsidiana y Oro).
+  /// Vista bloqueada (Bóveda de Obsidiana y Oro con Hero).
   Widget _buildLockedVaultView(BuildContext context, WidgetRef ref) {
     final authState = ref.watch(
       privateCodexAuthStateProvider(initiallyAuthenticatedForTest),
@@ -353,8 +354,8 @@ class PrivateCodexScreen extends ConsumerWidget {
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
               colors: [
-                AppColors.obsidiana,
-                Color(0xFF1A1E2E),
+                Color(0xFF0D151C),
+                Color(0xFF1A2236),
                 AppColors.obsidiana,
               ],
             ),
@@ -372,29 +373,36 @@ class PrivateCodexScreen extends ConsumerWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Container(
-                    width: 112,
-                    height: 112,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: AppColors.oro.withValues(alpha: 0.08),
-                      border: Border.all(
-                        color: AppColors.oro.withValues(alpha: 0.45),
-                        width: 2,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.oro.withValues(alpha: 0.2),
-                          blurRadius: 22,
-                          spreadRadius: 4,
+                  Hero(
+                    tag: 'hero_codex_internal',
+                    child: Container(
+                      width: 112,
+                      height: 112,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: const Color(0xFFFFC857).withValues(alpha: 0.12),
+                        border: Border.all(
+                          color: const Color(
+                            0xFFFFC857,
+                          ).withValues(alpha: 0.75),
+                          width: 2.2,
                         ),
-                      ],
-                    ),
-                    child: const Center(
-                      child: Icon(
-                        Icons.menu_book_rounded,
-                        size: 54,
-                        color: AppColors.oro,
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(
+                              0xFFFFC857,
+                            ).withValues(alpha: 0.28),
+                            blurRadius: 26,
+                            spreadRadius: 4,
+                          ),
+                        ],
+                      ),
+                      child: const Center(
+                        child: Icon(
+                          Icons.menu_book_rounded,
+                          size: 54,
+                          color: Color(0xFFFFC857),
+                        ),
                       ),
                     ),
                   ),
@@ -433,11 +441,11 @@ class PrivateCodexScreen extends ConsumerWidget {
                       margin: const EdgeInsets.only(bottom: 16),
                       decoration: BoxDecoration(
                         color: PrivateCodexContrastConstants.errorIconColor
-                            .withValues(alpha: 0.15),
+                            .withValues(alpha: 0.18),
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
                           color: PrivateCodexContrastConstants.errorIconColor
-                              .withValues(alpha: 0.35),
+                              .withValues(alpha: 0.45),
                         ),
                       ),
                       child: Row(
@@ -460,111 +468,122 @@ class PrivateCodexScreen extends ConsumerWidget {
                         ],
                       ),
                     ),
-                  Semantics(
-                    button: true,
-                    label: 'Desbloquear Códice Privado',
-                    hint:
-                        authState.isAuthenticating
-                            ? 'Autenticando...'
-                            : 'Toca para autenticar con huella, FaceID o PIN',
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(
-                        minWidth: 48,
-                        minHeight: 48,
-                      ),
-                      child: SizedBox(
-                        width: double.infinity,
-                        height: 54,
-                        child: ElevatedButton(
-                          key: privateCodexUnlockButtonKey,
-                          onPressed:
-                              authState.isAuthenticating
-                                  ? null
-                                  : () => _authenticate(ref, context),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor:
-                                PrivateCodexContrastConstants
-                                    .unlockButtonBgColor,
-                            foregroundColor:
-                                PrivateCodexContrastConstants
-                                    .unlockButtonTextColor,
-                            disabledBackgroundColor: AppColors.oro.withValues(
-                              alpha: 0.5,
+                  BouncyTap(
+                    enableHaptics: !authState.isAuthenticating,
+                    scaleDown: 0.96,
+                    child: Semantics(
+                      button: true,
+                      label: 'Desbloquear Códice Privado',
+                      hint:
+                          authState.isAuthenticating
+                              ? 'Autenticando...'
+                              : 'Toca para autenticar con huella, FaceID o PIN',
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(
+                          minWidth: 48,
+                          minHeight: 48,
+                        ),
+                        child: SizedBox(
+                          width: double.infinity,
+                          height: 54,
+                          child: ElevatedButton(
+                            key: privateCodexUnlockButtonKey,
+                            onPressed:
+                                authState.isAuthenticating
+                                    ? null
+                                    : () => _authenticate(ref, context),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor:
+                                  PrivateCodexContrastConstants
+                                      .unlockButtonBgColor,
+                              foregroundColor:
+                                  PrivateCodexContrastConstants
+                                      .unlockButtonTextColor,
+                              disabledBackgroundColor: AppColors.oro.withValues(
+                                alpha: 0.5,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              elevation: 6,
+                              shadowColor: AppColors.oro.withValues(alpha: 0.4),
                             ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            elevation: 4,
-                            shadowColor: AppColors.oro.withValues(alpha: 0.3),
-                          ),
-                          child:
-                              authState.isAuthenticating
-                                  ? const SizedBox(
-                                    width: 24,
-                                    height: 24,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2.5,
-                                      valueColor: AlwaysStoppedAnimation<Color>(
-                                        PrivateCodexContrastConstants
-                                            .unlockButtonTextColor,
+                            child:
+                                authState.isAuthenticating
+                                    ? const SizedBox(
+                                      width: 24,
+                                      height: 24,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2.5,
+                                        valueColor:
+                                            AlwaysStoppedAnimation<Color>(
+                                              PrivateCodexContrastConstants
+                                                  .unlockButtonTextColor,
+                                            ),
                                       ),
-                                    ),
-                                  )
-                                  : const Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Icon(Icons.fingerprint_rounded, size: 22),
-                                      SizedBox(width: 8),
-                                      Flexible(
-                                        child: Text(
-                                          'Desbloquear Códice Privado',
-                                          style: TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                          overflow: TextOverflow.ellipsis,
+                                    )
+                                    : const Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(
+                                          Icons.fingerprint_rounded,
+                                          size: 22,
                                         ),
-                                      ),
-                                    ],
-                                  ),
+                                        SizedBox(width: 8),
+                                        Flexible(
+                                          child: Text(
+                                            'Desbloquear Códice Privado',
+                                            style: TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.w700,
+                                            ),
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                          ),
                         ),
                       ),
                     ),
                   ),
                   const SizedBox(height: 18),
-                  Semantics(
-                    button: true,
-                    label: 'Regresar al Valle de Teotihuacán',
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(
-                        minWidth: 48,
-                        minHeight: 48,
-                      ),
-                      child: TextButton(
-                        key: privateCodexBackButtonKey,
-                        onPressed: () => Navigator.of(context).pop(),
-                        style: TextButton.styleFrom(
-                          foregroundColor: PrivateCodexContrastConstants
-                              .backButtonColor
-                              .withValues(
-                                alpha:
-                                    PrivateCodexContrastConstants
-                                        .backButtonAlpha,
-                              ),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 24,
-                            vertical: 14,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
+                  BouncyTap(
+                    child: Semantics(
+                      button: true,
+                      label: 'Regresar al Valle de Teotihuacán',
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(
+                          minWidth: 48,
+                          minHeight: 48,
                         ),
-                        child: const Text(
-                          'Regresar al Valle',
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w500,
+                        child: TextButton(
+                          key: privateCodexBackButtonKey,
+                          onPressed: () => Navigator.of(context).pop(),
+                          style: TextButton.styleFrom(
+                            foregroundColor: PrivateCodexContrastConstants
+                                .backButtonColor
+                                .withValues(
+                                  alpha:
+                                      PrivateCodexContrastConstants
+                                          .backButtonAlpha,
+                                ),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 24,
+                              vertical: 14,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          child: const Text(
+                            'Regresar al Valle',
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w500,
+                            ),
                           ),
                         ),
                       ),
@@ -580,7 +599,7 @@ class PrivateCodexScreen extends ConsumerWidget {
     );
   }
 
-  /// Vista desbloqueada: Calendario Agrícola estilo Códice Teotihuacano.
+  /// Vista desbloqueada: Calendario Agrícola con skeleton shimmer y AnimatedSwitcher.
   Widget _buildUnlockedCalendarView(BuildContext context, WidgetRef ref) {
     final currentMonth = ref.watch(privateCodexCurrentMonthProvider);
     final filter = ref.watch(privateCodexEmotionFilterProvider);
@@ -605,13 +624,8 @@ class PrivateCodexScreen extends ConsumerWidget {
                   entriesByDay,
                 ),
             loading:
-                () => const SliverFillRemaining(
-                  child: Center(
-                    child: CircularProgressIndicator(
-                      color: PrivateCodexContrastConstants.loadingColor,
-                    ),
-                  ),
-                ),
+                () =>
+                    SliverToBoxAdapter(child: _buildCalendarLoadingSkeleton()),
             error:
                 (error, _) => SliverFillRemaining(
                   child: Center(
@@ -658,21 +672,70 @@ class PrivateCodexScreen extends ConsumerWidget {
     );
   }
 
-  /// Header de obsidiana con SafeArea y cenefa dorada.
+  /// Skeleton loading con shimmer cálido de papel amate mientras carga la BD.
+  Widget _buildCalendarLoadingSkeleton() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(14, 6, 14, 16),
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const SizedBox(
+                width: 14,
+                height: 14,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: PrivateCodexContrastConstants.loadingColor,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Flexible(child: Text(
+                'Cargando parcelas del códice...',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.obsidiana.withValues(alpha: 0.55),
+                ),
+                overflow: TextOverflow.ellipsis,
+              )),
+            ],
+          ),
+          const SizedBox(height: 10),
+          GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: 35,
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 7,
+              childAspectRatio: 0.96,
+              crossAxisSpacing: 6,
+              mainAxisSpacing: 6,
+            ),
+            itemBuilder:
+                (_, __) => const AmateShimmerBox(
+                  borderRadius: 12,
+                  baseColor: Color(0xFFECE2D0),
+                  highlightColor: Color(0xFFFFFBF2),
+                ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Header de obsidiana con SafeArea, Hero y cenefa dorada.
   Widget _buildCalendarHeader(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
         color: PrivateCodexContrastConstants.headerBgColor,
-        border: Border(
-          bottom: BorderSide(
-            color: AppColors.oro.withValues(alpha: 0.65),
-            width: 1.5,
-          ),
+        border: const Border(
+          bottom: BorderSide(color: Color(0xFFFFC857), width: 1.8),
         ),
         boxShadow: [
           BoxShadow(
-            color: AppColors.obsidiana.withValues(alpha: 0.18),
-            blurRadius: 8,
+            color: AppColors.obsidiana.withValues(alpha: 0.22),
+            blurRadius: 10,
             offset: const Offset(0, 3),
           ),
         ],
@@ -683,19 +746,22 @@ class PrivateCodexScreen extends ConsumerWidget {
           padding: const EdgeInsets.fromLTRB(18, 10, 12, 12),
           child: Row(
             children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: AppColors.oro.withValues(alpha: 0.14),
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(
-                    color: AppColors.oro.withValues(alpha: 0.45),
+              Hero(
+                tag: 'hero_codex_internal',
+                child: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFFC857).withValues(alpha: 0.16),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: const Color(0xFFFFC857).withValues(alpha: 0.65),
+                    ),
                   ),
-                ),
-                child: const Icon(
-                  Icons.auto_stories_rounded,
-                  color: AppColors.oro,
-                  size: 20,
+                  child: const Icon(
+                    Icons.auto_stories_rounded,
+                    color: Color(0xFFFFC857),
+                    size: 20,
+                  ),
                 ),
               ),
               const SizedBox(width: 12),
@@ -711,26 +777,28 @@ class PrivateCodexScreen extends ConsumerWidget {
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
-              Semantics(
-                button: true,
-                label: 'Cerrar Códice Privado y volver al Valle',
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(
-                    minWidth: 48,
-                    minHeight: 48,
-                  ),
-                  child: IconButton(
-                    icon: Icon(
-                      Icons.close_rounded,
-                      color: PrivateCodexContrastConstants.headerIconColor
-                          .withValues(
-                            alpha:
-                                PrivateCodexContrastConstants.headerIconAlpha,
-                          ),
-                      size: 26,
+              BouncyTap(
+                child: Semantics(
+                  button: true,
+                  label: 'Cerrar Códice Privado y volver al Valle',
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(
+                      minWidth: 48,
+                      minHeight: 48,
                     ),
-                    onPressed: () => Navigator.of(context).pop(),
-                    tooltip: 'Cerrar Códice',
+                    child: IconButton(
+                      icon: Icon(
+                        Icons.close_rounded,
+                        color: PrivateCodexContrastConstants.headerIconColor
+                            .withValues(
+                              alpha:
+                                  PrivateCodexContrastConstants.headerIconAlpha,
+                            ),
+                        size: 26,
+                      ),
+                      onPressed: () => Navigator.of(context).pop(),
+                      tooltip: 'Cerrar Códice',
+                    ),
                   ),
                 ),
               ),
@@ -741,13 +809,14 @@ class PrivateCodexScreen extends ConsumerWidget {
     );
   }
 
-  /// Selector de mes/año en tarjeta cálida con borde dorado.
+  /// Selector de mes/año con AnimatedSwitcher y BouncyTap en las flechas.
   Widget _buildMonthSelector(
     BuildContext context,
     WidgetRef ref,
     DateTime currentMonth,
   ) {
     final monthFormat = DateFormat('MMMM yyyy', 'es_MX');
+    final monthLabel = monthFormat.format(currentMonth).capitalizeFirst();
 
     return Container(
       key: privateCodexMonthSelectorKey,
@@ -758,13 +827,10 @@ class PrivateCodexScreen extends ConsumerWidget {
         decoration: BoxDecoration(
           color: PrivateCodexContrastConstants.monthSelectorBgColor,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: AppColors.oro.withValues(alpha: 0.55),
-            width: 1.2,
-          ),
+          border: Border.all(color: const Color(0xFFE0A93B), width: 1.4),
           boxShadow: [
             BoxShadow(
-              color: AppColors.obsidiana.withValues(alpha: 0.06),
+              color: AppColors.obsidiana.withValues(alpha: 0.08),
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),
@@ -773,56 +839,95 @@ class PrivateCodexScreen extends ConsumerWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Semantics(
-              button: true,
-              label: 'Mes anterior',
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
-                child: IconButton(
-                  key: privateCodexPreviousMonthKey,
-                  icon: const Icon(
-                    Icons.chevron_left_rounded,
-                    color: PrivateCodexContrastConstants.monthSelectorTextColor,
-                    size: 28,
+            BouncyTap(
+              enableHaptics: true,
+              child: Semantics(
+                button: true,
+                label: 'Mes anterior',
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(
+                    minWidth: 48,
+                    minHeight: 48,
                   ),
-                  onPressed: () {
-                    ref.read(privateCodexCurrentMonthProvider.notifier).state =
-                        DateTime(currentMonth.year, currentMonth.month - 1);
-                  },
-                  tooltip: 'Mes anterior',
+                  child: IconButton(
+                    key: privateCodexPreviousMonthKey,
+                    icon: const Icon(
+                      Icons.chevron_left_rounded,
+                      color:
+                          PrivateCodexContrastConstants.monthSelectorTextColor,
+                      size: 28,
+                    ),
+                    onPressed: () {
+                      ref
+                          .read(privateCodexCurrentMonthProvider.notifier)
+                          .state = DateTime(
+                        currentMonth.year,
+                        currentMonth.month - 1,
+                      );
+                    },
+                    tooltip: 'Mes anterior',
+                  ),
                 ),
               ),
             ),
             Flexible(
-              child: Text(
-                monthFormat.format(currentMonth).capitalizeFirst(),
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                  color: PrivateCodexContrastConstants.monthSelectorTextColor,
-                  letterSpacing: 0.3,
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 220),
+                transitionBuilder:
+                    (child, anim) => FadeTransition(
+                      opacity: anim,
+                      child: SlideTransition(
+                        position: Tween<Offset>(
+                          begin: const Offset(0, 0.15),
+                          end: Offset.zero,
+                        ).animate(anim),
+                        child: child,
+                      ),
+                    ),
+                child: Text(
+                  monthLabel,
+                  key: ValueKey<String>(
+                    '${currentMonth.year}_${currentMonth.month}',
+                  ),
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                    color: PrivateCodexContrastConstants.monthSelectorTextColor,
+                    letterSpacing: 0.3,
+                  ),
+                  overflow: TextOverflow.ellipsis,
                 ),
-                overflow: TextOverflow.ellipsis,
               ),
             ),
-            Semantics(
-              button: true,
-              label: 'Mes siguiente',
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
-                child: IconButton(
-                  key: privateCodexNextMonthKey,
-                  icon: const Icon(
-                    Icons.chevron_right_rounded,
-                    color: PrivateCodexContrastConstants.monthSelectorTextColor,
-                    size: 28,
+            BouncyTap(
+              enableHaptics: true,
+              child: Semantics(
+                button: true,
+                label: 'Mes siguiente',
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(
+                    minWidth: 48,
+                    minHeight: 48,
                   ),
-                  onPressed: () {
-                    ref.read(privateCodexCurrentMonthProvider.notifier).state =
-                        DateTime(currentMonth.year, currentMonth.month + 1);
-                  },
-                  tooltip: 'Mes siguiente',
+                  child: IconButton(
+                    key: privateCodexNextMonthKey,
+                    icon: const Icon(
+                      Icons.chevron_right_rounded,
+                      color:
+                          PrivateCodexContrastConstants.monthSelectorTextColor,
+                      size: 28,
+                    ),
+                    onPressed: () {
+                      ref
+                          .read(privateCodexCurrentMonthProvider.notifier)
+                          .state = DateTime(
+                        currentMonth.year,
+                        currentMonth.month + 1,
+                      );
+                    },
+                    tooltip: 'Mes siguiente',
+                  ),
                 ),
               ),
             ),
@@ -909,7 +1014,7 @@ class PrivateCodexScreen extends ConsumerWidget {
                         side: BorderSide(
                           color:
                               isSelected
-                                  ? AppColors.obsidiana.withValues(alpha: 0.35)
+                                  ? AppColors.obsidiana.withValues(alpha: 0.45)
                                   : PrivateCodexContrastConstants
                                       .filterChipBorderColor
                                       .withValues(
@@ -951,8 +1056,8 @@ class PrivateCodexScreen extends ConsumerWidget {
                         d,
                         style: TextStyle(
                           fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.obsidiana.withValues(alpha: 0.55),
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.obsidiana.withValues(alpha: 0.65),
                           letterSpacing: 0.6,
                         ),
                       ),
@@ -969,7 +1074,7 @@ class PrivateCodexScreen extends ConsumerWidget {
     BuildContext context,
     WidgetRef ref,
     DateTime currentMonth,
-    Map<int, List<DiaryEntry>> entriesByDay,
+    CodexDayEntriesMap entriesByDay,
   ) {
     final daysInMonth =
         DateTime(currentMonth.year, currentMonth.month + 1, 0).day;
@@ -1052,7 +1157,6 @@ class PrivateCodexScreen extends ConsumerWidget {
     );
   }
 
-  /// Leyenda discreta al pie del calendario.
   Widget _buildCalendarLegend() {
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 4, 20, 28),
@@ -1061,16 +1165,18 @@ class PrivateCodexScreen extends ConsumerWidget {
         spacing: 16,
         runSpacing: 8,
         children: [
-          _legendItem(color: AppColors.oro, outlined: true, label: 'Hoy'),
+          _legendItem(
+            color: const Color(0xFFE0A93B),
+            outlined: true,
+            label: 'Hoy',
+          ),
           _legendItem(
             color: AppColors.jade,
             outlined: false,
             label: 'Día con ofrenda',
           ),
           _legendItem(
-            color: PrivateCodexContrastConstants.dayCellEmptyBgColor.withValues(
-              alpha: 0.25,
-            ),
+            color: const Color(0xFFE8DDCA),
             outlined: false,
             label: 'Parcela en descanso',
           ),
@@ -1101,8 +1207,8 @@ class PrivateCodexScreen extends ConsumerWidget {
           label,
           style: TextStyle(
             fontSize: 12,
-            color: AppColors.obsidiana.withValues(alpha: 0.65),
-            fontWeight: FontWeight.w500,
+            color: AppColors.obsidiana.withValues(alpha: 0.72),
+            fontWeight: FontWeight.w600,
           ),
         ),
       ],
@@ -1131,7 +1237,7 @@ class PrivateCodexScreen extends ConsumerWidget {
   }
 }
 
-/// Celda individual del día en el Calendario Agrícola.
+/// Celda individual del día en el Calendario Agrícola (con rebote si tiene ofrendas).
 class _DayCell extends StatelessWidget {
   const _DayCell({
     super.key,
@@ -1160,7 +1266,7 @@ class _DayCell extends StatelessWidget {
     final maxIconSize = (13 * scale).clamp(1.0, 15.0);
     final maxSosIconSize = (11 * scale).clamp(1.0, 13.0);
 
-    return Semantics(
+    final cell = Semantics(
       button: onTap != null,
       label:
           hasEntries
@@ -1173,17 +1279,18 @@ class _DayCell extends StatelessWidget {
           child: InkWell(
             onTap: onTap,
             borderRadius: BorderRadius.circular(12),
-            splashColor: AppColors.jade.withValues(alpha: 0.14),
-            highlightColor: AppColors.jade.withValues(alpha: 0.06),
-            child: Container(
+            splashColor: AppColors.jade.withValues(alpha: 0.16),
+            highlightColor: AppColors.jade.withValues(alpha: 0.08),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 220),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
                   color:
                       hasEntries
-                          ? AppColors.obsidiana.withValues(alpha: 0.12)
-                          : AppColors.oro.withValues(alpha: 0.28),
-                  width: 1,
+                          ? AppColors.obsidiana.withValues(alpha: 0.18)
+                          : const Color(0xFFD9C7A7),
+                  width: 1.1,
                 ),
                 color:
                     hasEntries
@@ -1194,9 +1301,9 @@ class _DayCell extends StatelessWidget {
                         ? [
                           BoxShadow(
                             color: _getEmotionBackgroundColor().withValues(
-                              alpha: 0.28,
+                              alpha: 0.34,
                             ),
-                            blurRadius: 4,
+                            blurRadius: 6,
                             offset: const Offset(0, 2),
                           ),
                         ]
@@ -1218,7 +1325,7 @@ class _DayCell extends StatelessWidget {
                               '$day',
                               style: TextStyle(
                                 fontSize: baseFontSize,
-                                fontWeight: FontWeight.w700,
+                                fontWeight: FontWeight.w800,
                                 color:
                                     hasEntries
                                         ? Colors.white
@@ -1265,7 +1372,7 @@ class _DayCell extends StatelessWidget {
                       child: Container(
                         padding: const EdgeInsets.all(2.5),
                         decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.85),
+                          color: Colors.white.withValues(alpha: 0.9),
                           shape: BoxShape.circle,
                         ),
                         child: _getEmotionIcon(predominantEmotion!),
@@ -1278,8 +1385,8 @@ class _DayCell extends StatelessWidget {
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
-                              color: AppColors.oro,
-                              width: 2.2,
+                              color: const Color(0xFFE0A93B),
+                              width: 2.4,
                             ),
                           ),
                         ),
@@ -1292,6 +1399,9 @@ class _DayCell extends StatelessWidget {
         ),
       ),
     );
+
+    if (!hasEntries) return cell;
+    return BouncyTap(enableHaptics: true, scaleDown: 0.90, child: cell);
   }
 
   Color _getEmotionBackgroundColor() {
@@ -1301,7 +1411,7 @@ class _DayCell extends StatelessWidget {
     final color = Color(
       int.parse(predominantEmotion!.colorHex.replaceFirst('#', '0xFF')),
     );
-    return color.withValues(alpha: 0.90);
+    return color.withValues(alpha: 0.94);
   }
 
   Widget _getEmotionIcon(PrehispanicEmotion emotion) {
@@ -1355,15 +1465,12 @@ class CodexDayParchmentSheet extends ConsumerWidget {
           decoration: BoxDecoration(
             color: PrivateCodexContrastConstants.parchmentBgColor,
             borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-            border: Border(
-              top: BorderSide(
-                color: AppColors.oro.withValues(alpha: 0.8),
-                width: 2,
-              ),
+            border: const Border(
+              top: BorderSide(color: Color(0xFFFFC857), width: 2.2),
             ),
             boxShadow: [
               BoxShadow(
-                color: AppColors.obsidiana.withValues(alpha: 0.25),
+                color: AppColors.obsidiana.withValues(alpha: 0.28),
                 blurRadius: 20,
                 offset: const Offset(0, -4),
               ),
@@ -1376,7 +1483,7 @@ class CodexDayParchmentSheet extends ConsumerWidget {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: AppColors.oro.withValues(alpha: 0.65),
+                  color: const Color(0xFFE0A93B).withValues(alpha: 0.75),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -1386,7 +1493,7 @@ class CodexDayParchmentSheet extends ConsumerWidget {
                   children: [
                     const Icon(
                       Icons.menu_book_rounded,
-                      color: AppColors.oro,
+                      color: Color(0xFFE0A93B),
                       size: 22,
                     ),
                     const SizedBox(width: 10),
@@ -1401,31 +1508,33 @@ class CodexDayParchmentSheet extends ConsumerWidget {
                         ),
                       ),
                     ),
-                    Semantics(
-                      button: true,
-                      label: 'Cerrar pergamino del día',
-                      child: ConstrainedBox(
-                        constraints: const BoxConstraints(
-                          minWidth: 48,
-                          minHeight: 48,
-                        ),
-                        child: IconButton(
-                          key: const ValueKey('codex_parchment_close_button'),
-                          icon: const Icon(
-                            Icons.close_rounded,
-                            color:
-                                PrivateCodexContrastConstants
-                                    .closeButtonTextColor,
-                            size: 24,
+                    BouncyTap(
+                      child: Semantics(
+                        button: true,
+                        label: 'Cerrar pergamino del día',
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(
+                            minWidth: 48,
+                            minHeight: 48,
                           ),
-                          onPressed: () => Navigator.of(context).pop(),
-                          tooltip: 'Cerrar',
-                          style: IconButton.styleFrom(
-                            backgroundColor:
-                                PrivateCodexContrastConstants
-                                    .closeButtonBgColor,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
+                          child: IconButton(
+                            key: const ValueKey('codex_parchment_close_button'),
+                            icon: const Icon(
+                              Icons.close_rounded,
+                              color:
+                                  PrivateCodexContrastConstants
+                                      .closeButtonTextColor,
+                              size: 24,
+                            ),
+                            onPressed: () => Navigator.of(context).pop(),
+                            tooltip: 'Cerrar',
+                            style: IconButton.styleFrom(
+                              backgroundColor:
+                                  PrivateCodexContrastConstants
+                                      .closeButtonBgColor,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
                             ),
                           ),
                         ),
@@ -1435,7 +1544,7 @@ class CodexDayParchmentSheet extends ConsumerWidget {
                 ),
               ),
               Divider(
-                color: AppColors.oro.withValues(alpha: 0.5),
+                color: const Color(0xFFE0A93B).withValues(alpha: 0.55),
                 height: 1,
                 indent: 20,
                 endIndent: 20,
@@ -1567,7 +1676,7 @@ class _ParchmentEntryCard extends ConsumerWidget {
                 emotion.deity,
                 style: const TextStyle(
                   fontSize: 15,
-                  fontWeight: FontWeight.w600,
+                  fontWeight: FontWeight.w700,
                   color: PrivateCodexContrastConstants.parchmentTextColor,
                 ),
               ),
@@ -1579,7 +1688,7 @@ class _ParchmentEntryCard extends ConsumerWidget {
                 style: TextStyle(
                   fontSize: 12,
                   color: PrivateCodexContrastConstants.parchmentTextColor
-                      .withValues(alpha: 0.6),
+                      .withValues(alpha: 0.65),
                 ),
               ),
             ),
@@ -1604,7 +1713,7 @@ class _ParchmentEntryCard extends ConsumerWidget {
                   ),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color: feather.color.withValues(alpha: 0.35),
+                    color: feather.color.withValues(alpha: 0.45),
                   ),
                 ),
                 child: Column(
@@ -1623,7 +1732,7 @@ class _ParchmentEntryCard extends ConsumerWidget {
                             feather.name,
                             style: TextStyle(
                               fontSize: 13,
-                              fontWeight: FontWeight.w600,
+                              fontWeight: FontWeight.w700,
                               color: feather.color,
                             ),
                             overflow: TextOverflow.ellipsis,
@@ -1638,7 +1747,7 @@ class _ParchmentEntryCard extends ConsumerWidget {
                         fontSize: 12,
                         height: 1.4,
                         color: PrivateCodexContrastConstants.parchmentTextColor
-                            .withValues(alpha: 0.8),
+                            .withValues(alpha: 0.85),
                         fontStyle: FontStyle.italic,
                       ),
                     ),
@@ -1652,9 +1761,11 @@ class _ParchmentEntryCard extends ConsumerWidget {
           width: double.infinity,
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.7),
+            color: Colors.white.withValues(alpha: 0.82),
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: AppColors.oro.withValues(alpha: 0.4)),
+            border: Border.all(
+              color: const Color(0xFFE0A93B).withValues(alpha: 0.5),
+            ),
           ),
           child: Text(
             entry.content,
@@ -1670,7 +1781,10 @@ class _ParchmentEntryCard extends ConsumerWidget {
         ),
         if (index < total - 1) ...[
           const SizedBox(height: 18),
-          Divider(color: AppColors.oro.withValues(alpha: 0.45), height: 1),
+          Divider(
+            color: const Color(0xFFE0A93B).withValues(alpha: 0.45),
+            height: 1,
+          ),
           const SizedBox(height: 18),
         ],
       ],
@@ -1697,7 +1811,7 @@ class _ParchmentEntryCard extends ConsumerWidget {
               text,
               style: const TextStyle(
                 fontSize: 12,
-                fontWeight: FontWeight.w500,
+                fontWeight: FontWeight.w600,
                 color: AppColors.jade,
               ),
               overflow: TextOverflow.ellipsis,
@@ -1715,9 +1829,9 @@ class _VaultPatternPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final paint =
         Paint()
-          ..color = AppColors.oro.withValues(alpha: 0.04)
+          ..color = AppColors.oro.withValues(alpha: 0.05)
           ..style = PaintingStyle.stroke
-          ..strokeWidth = 0.5;
+          ..strokeWidth = 0.6;
 
     const spacing = 40.0;
     const patternSize = 20.0;

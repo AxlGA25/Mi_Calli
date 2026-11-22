@@ -2,13 +2,15 @@
 //
 // Quetzalcóatl animado con penacho turquesa/jade/grana y orejeras de oro,
 // Templo del Códice con bloques y alfardas, Brasero del Fuego Sagrado con
-// chispas, Chinampa fértil, vegetación mesoamericana y 5 zonas táctiles.
+// chispas, Chinampa fértil, vegetación mesoamericana, rebote BouncyTap,
+// transiciones Hero y 5 zonas táctiles accesibles.
 
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import 'package:mi_calli/core/audio/ambient_audio_models.dart';
 import 'package:mi_calli/core/constants/app_colors.dart';
+import 'package:mi_calli/core/widgets/mi_calli_animations.dart';
 import 'package:mi_calli/features/1_sanctuary_journal/models/prehispanic_emotion.dart';
 
 /// Clave global para acceder a esta capa en tests.
@@ -131,7 +133,7 @@ class ValleyScenicElementsLayer extends StatelessWidget {
 
         // ─── 5 ZONAS TÁCTILES PROTAGONISTAS ───
 
-        // 1. Templo del Códice (sobre la terraza izquierda del valle)
+        // 1. Templo del Códice (con Hero hacia PrivateCodexScreen)
         Positioned(
           left: size.width * 0.04,
           top: size.height * 0.44,
@@ -141,9 +143,12 @@ class ValleyScenicElementsLayer extends StatelessWidget {
             badgeText: 'Códice',
             badgeIcon: Icons.calendar_month_rounded,
             onTap: onOpenCodex,
-            child: _CodexTempleWidget(
-              timePhase: timePhase,
-              emotionOverride: emotionOverride,
+            child: Hero(
+              tag: 'hero_codex_temple',
+              child: _CodexTempleWidget(
+                timePhase: timePhase,
+                emotionOverride: emotionOverride,
+              ),
             ),
           ),
         ),
@@ -170,7 +175,7 @@ class ValleyScenicElementsLayer extends StatelessWidget {
           ),
         ),
 
-        // 3. Altar de Quetzalcóatl (protagonista central -> Diario)
+        // 3. Altar de Quetzalcóatl (con Hero hacia SanctuaryJournalScreen)
         Positioned(
           left: (size.width - 144) / 2,
           bottom: size.height * 0.21,
@@ -183,10 +188,13 @@ class ValleyScenicElementsLayer extends StatelessWidget {
             onTap: onOpenSanctuaryJournal,
             child: KeyedSubtree(
               key: valleyAltarQuetzalcoatlKey,
-              child: _AltarQuetzalcoatlWidget(
-                timePhase: timePhase,
-                emotionOverride: emotionOverride,
-                reduceMotion: reduceMotion,
+              child: Hero(
+                tag: 'hero_quetzalcoatl_altar',
+                child: _AltarQuetzalcoatlWidget(
+                  timePhase: timePhase,
+                  emotionOverride: emotionOverride,
+                  reduceMotion: reduceMotion,
+                ),
               ),
             ),
           ),
@@ -237,7 +245,7 @@ class ValleyScenicElementsLayer extends StatelessWidget {
   }
 }
 
-/// Zona táctil accesible con Semantics, área mínima 48x48 px y etiqueta pill.
+/// Zona táctil accesible con BouncyTap, Semantics, área mínima 48x48 px y etiqueta pill.
 /// IMPORTANTE: mantiene un único ConstrainedBox descendiente para los tests.
 class _TouchZone extends StatelessWidget {
   const _TouchZone({
@@ -261,68 +269,73 @@ class _TouchZone extends StatelessWidget {
   Widget build(BuildContext context) {
     final badgeBorder = accentColor ?? AppColors.fuegoDorado;
 
-    return Semantics(
-      button: true,
-      label: label,
-      hint: onTap != null ? 'Toca para interactuar' : 'No disponible',
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
-        child: Material(
-          color: Colors.transparent,
-          child: InkWell(
-            onTap: onTap,
-            borderRadius: BorderRadius.circular(20),
-            splashColor: AppColors.jade.withValues(alpha: 0.18),
-            highlightColor: AppColors.jade.withValues(alpha: 0.08),
-            child: Padding(
-              padding: const EdgeInsets.all(6),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  child,
-                  const SizedBox(height: 4),
-                  ExcludeSemantics(
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF1A1715).withValues(alpha: 0.82),
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(
-                          color: badgeBorder.withValues(alpha: 0.78),
-                          width: 1.1,
+    return BouncyTap(
+      enableHaptics: true,
+      child: Semantics(
+        button: true,
+        label: label,
+        hint: onTap != null ? 'Toca para interactuar' : 'No disponible',
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: onTap,
+              borderRadius: BorderRadius.circular(20),
+              splashColor: AppColors.jade.withValues(alpha: 0.18),
+              highlightColor: AppColors.jade.withValues(alpha: 0.08),
+              child: Padding(
+                padding: const EdgeInsets.all(6),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    child,
+                    const SizedBox(height: 4),
+                    ExcludeSemantics(
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 4,
                         ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.28),
-                            blurRadius: 6,
-                            offset: const Offset(0, 2),
+                        decoration: BoxDecoration(
+                          color: const Color(
+                            0xFF1A1715,
+                          ).withValues(alpha: 0.85),
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(
+                            color: badgeBorder.withValues(alpha: 0.85),
+                            width: 1.2,
                           ),
-                        ],
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(badgeIcon, size: 13, color: badgeBorder),
-                          const SizedBox(width: 4),
-                          Text(
-                            badgeText,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              color: AppColors.pergaminoClaro,
-                              fontSize: 11,
-                              fontWeight: FontWeight.w700,
-                              letterSpacing: 0.3,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.30),
+                              blurRadius: 6,
+                              offset: const Offset(0, 2),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(badgeIcon, size: 13, color: badgeBorder),
+                            const SizedBox(width: 4),
+                            Text(
+                              badgeText,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                color: AppColors.pergaminoClaro,
+                                fontSize: 11,
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: 0.3,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
@@ -364,11 +377,11 @@ class _CodexTemplePainter extends CustomPainter {
 
     final isNight = timePhase == ValleyTimePhase.night;
     final stoneLight =
-        isNight ? const Color(0xFF565E80) : const Color(0xFFDDB892);
+        isNight ? const Color(0xFF565E80) : const Color(0xFFF3C68F);
     final stoneMid =
-        isNight ? const Color(0xFF3E4566) : const Color(0xFFC2956B);
+        isNight ? const Color(0xFF3E4566) : const Color(0xFFD69352);
     final stoneDark =
-        isNight ? const Color(0xFF2B304A) : const Color(0xFF946842);
+        isNight ? const Color(0xFF2B304A) : const Color(0xFF8C4E27);
 
     // Sombra en el suelo
     canvas.drawOval(
@@ -377,7 +390,7 @@ class _CodexTemplePainter extends CustomPainter {
         width: size.width * 0.88,
         height: 8,
       ),
-      Paint()..color = Colors.black.withValues(alpha: 0.24),
+      Paint()..color = Colors.black.withValues(alpha: 0.28),
     );
 
     // 3 niveles escalonados con sombra de tablero
@@ -420,12 +433,12 @@ class _CodexTemplePainter extends CustomPainter {
     final doorH = shrineH * 0.66;
     canvas.drawRect(
       Rect.fromLTWH(cx - doorW / 2, shrineTop + shrineH - doorH, doorW, doorH),
-      Paint()..color = AppColors.obsidiana.withValues(alpha: 0.9),
+      Paint()..color = AppColors.obsidiana.withValues(alpha: 0.92),
     );
     canvas.drawCircle(
       Offset(cx, shrineTop + 4),
       2.4,
-      Paint()..color = AppColors.oro,
+      Paint()..color = const Color(0xFFFFC857),
     );
 
     // Escalinata frontal con alfardas
@@ -441,8 +454,8 @@ class _CodexTemplePainter extends CustomPainter {
     final railPaint =
         Paint()
           ..color = const Color(
-            0xFFEAD0B3,
-          ).withValues(alpha: isNight ? 0.5 : 0.9)
+            0xFFFFE8C8,
+          ).withValues(alpha: isNight ? 0.5 : 0.95)
           ..strokeWidth = 2.2
           ..strokeCap = StrokeCap.round;
     canvas.drawLine(
@@ -653,15 +666,15 @@ class _ScenicElementsPainter extends CustomPainter {
     final backLeaf =
         Paint()
           ..color = (isNight
-                  ? const Color(0xFF1F473E)
-                  : const Color(0xFF2D6A5B))
-              .withValues(alpha: 0.88);
+                  ? const Color(0xFF1A4338)
+                  : const Color(0xFF1F6E57))
+              .withValues(alpha: 0.92);
     final frontLeaf =
         Paint()
           ..color = (isNight
-                  ? const Color(0xFF2B5E52)
-                  : const Color(0xFF479C7F))
-              .withValues(alpha: 0.94);
+                  ? const Color(0xFF285E50)
+                  : const Color(0xFF2EC496))
+              .withValues(alpha: 0.96);
 
     const angles = [-2.55, -2.20, -1.85, -1.57, -1.29, -0.94, -0.59];
     const lengths = [32.0, 44.0, 54.0, 60.0, 54.0, 44.0, 32.0];
@@ -709,7 +722,7 @@ class _ScenicElementsPainter extends CustomPainter {
     final isNight = timePhase == ValleyTimePhase.night;
     final padPaint =
         Paint()
-          ..color = isNight ? const Color(0xFF224D3A) : const Color(0xFF3E7C52);
+          ..color = isNight ? const Color(0xFF1D4B38) : const Color(0xFF2E8550);
 
     canvas.drawOval(
       Rect.fromCenter(
@@ -735,17 +748,16 @@ class _ScenicElementsPainter extends CustomPainter {
       padPaint,
     );
     canvas.restore();
-    // Tunas rojizas sutiles
     canvas.drawCircle(
       Offset(base.dx - 13, base.dy - 36),
       2.6,
-      Paint()..color = AppColors.rojoGrana,
+      Paint()..color = const Color(0xFFE63946),
     );
   }
 
   void _drawStones(Canvas canvas, Size size) {
     final stonePaint =
-        Paint()..color = AppColors.obsidiana.withValues(alpha: 0.22);
+        Paint()..color = AppColors.obsidiana.withValues(alpha: 0.25);
     final spots = [
       Offset(size.width * 0.56, size.height * 0.92),
       Offset(size.width * 0.61, size.height * 0.94),
@@ -761,7 +773,7 @@ class _ScenicElementsPainter extends CustomPainter {
 
   void _drawButterflies(Canvas canvas, Size size) {
     final wingPaint =
-        Paint()..color = AppColors.fuegoDorado.withValues(alpha: 0.88);
+        Paint()..color = AppColors.fuegoDorado.withValues(alpha: 0.92);
     final spots = [
       Offset(size.width * 0.22, size.height * 0.30),
       Offset(size.width * 0.74, size.height * 0.28),
@@ -790,13 +802,13 @@ class _ScenicElementsPainter extends CustomPainter {
         pos,
         4.5,
         Paint()
-          ..color = AppColors.fuegoDorado.withValues(alpha: 0.22)
+          ..color = AppColors.fuegoDorado.withValues(alpha: 0.24)
           ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4),
       );
       canvas.drawCircle(
         pos,
         1.6,
-        Paint()..color = const Color(0xFFFFF3B0).withValues(alpha: 0.85),
+        Paint()..color = const Color(0xFFFFF3B0).withValues(alpha: 0.9),
       );
     }
   }
@@ -895,11 +907,11 @@ class _AltarQuetzalcoatlPainter extends CustomPainter {
     final pulse = 0.5 + 0.5 * wave;
 
     final stoneLight =
-        isNight ? const Color(0xFF5A6382) : const Color(0xFFDDB892);
+        isNight ? const Color(0xFF5A6382) : const Color(0xFFF3C68F);
     final stoneMid =
-        isNight ? const Color(0xFF424A68) : const Color(0xFFC2956B);
+        isNight ? const Color(0xFF424A68) : const Color(0xFFD69352);
     final stoneDark =
-        isNight ? const Color(0xFF2D334D) : const Color(0xFF946842);
+        isNight ? const Color(0xFF2D334D) : const Color(0xFF8C4E27);
 
     // 1. Sombra suave en la Calzada
     canvas.drawOval(
@@ -908,7 +920,7 @@ class _AltarQuetzalcoatlPainter extends CustomPainter {
         width: size.width * 0.86,
         height: 10,
       ),
-      Paint()..color = Colors.black.withValues(alpha: 0.28),
+      Paint()..color = Colors.black.withValues(alpha: 0.30),
     );
 
     // 2. Pedestal escalonado teotihuacano con escalinata central
@@ -954,30 +966,28 @@ class _AltarQuetzalcoatlPainter extends CustomPainter {
       Offset(cx - 10, baseY),
       Offset(cx - 10, baseY - h1 - h2),
       Paint()
-        ..color = AppColors.oro.withValues(alpha: 0.8)
+        ..color = const Color(0xFFFFC857).withValues(alpha: 0.9)
         ..strokeWidth = 2,
     );
     canvas.drawLine(
       Offset(cx + 10, baseY),
       Offset(cx + 10, baseY - h1 - h2),
       Paint()
-        ..color = AppColors.oro.withValues(alpha: 0.8)
+        ..color = const Color(0xFFFFC857).withValues(alpha: 0.9)
         ..strokeWidth = 2,
     );
 
     // 3. Quetzalcóatl flotando sobre el altar
     final center = Offset(cx, baseY - h1 - h2 - 42 + wave * 3.5);
 
-    // Resplandor turquesa y dorado
     canvas.drawCircle(
       center,
       38 + pulse * 4,
       Paint()
-        ..color = const Color(0xFF00B4D8).withValues(alpha: 0.18 + 0.08 * pulse)
+        ..color = const Color(0xFF00D2B8).withValues(alpha: 0.22 + 0.08 * pulse)
         ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 12),
     );
 
-    // Disco solar sutil girando detrás de Quetzalcóatl
     canvas.save();
     canvas.translate(center.dx, center.dy);
     canvas.rotate(progress * math.pi * 0.5);
@@ -985,16 +995,16 @@ class _AltarQuetzalcoatlPainter extends CustomPainter {
       Offset.zero,
       30,
       Paint()
-        ..color = AppColors.oro.withValues(alpha: 0.45)
+        ..color = const Color(0xFFFFC857).withValues(alpha: 0.55)
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 1.6,
+        ..strokeWidth = 1.8,
     );
     for (var i = 0; i < 8; i++) {
       final a = i * (math.pi / 4);
       canvas.drawCircle(
         Offset(math.cos(a) * 30, math.sin(a) * 30),
-        2.0,
-        Paint()..color = AppColors.fuegoDorado,
+        2.2,
+        Paint()..color = const Color(0xFFFFD166),
       );
     }
     canvas.restore();
@@ -1019,8 +1029,8 @@ class _AltarQuetzalcoatlPainter extends CustomPainter {
 
       final featherColor =
           i == 3
-              ? const Color(0xFF00C2B8)
-              : (i.isEven ? const Color(0xFF1B998B) : const Color(0xFF00A896));
+              ? const Color(0xFF00E0C6)
+              : (i.isEven ? const Color(0xFF00B89F) : const Color(0xFF009E8B));
 
       final featherPath =
           Path()
@@ -1040,14 +1050,14 @@ class _AltarQuetzalcoatlPainter extends CustomPainter {
             ..close();
       canvas.drawPath(featherPath, Paint()..color = featherColor);
 
-      // Punta decorativa roja o dorada en las plumas
       canvas.drawCircle(
         Offset(
           center.dx + math.cos(a) * (len - 5),
           center.dy + math.sin(a) * (len - 5),
         ),
-        3.0,
-        Paint()..color = i.isOdd ? AppColors.rojoGrana : AppColors.oro,
+        3.1,
+        Paint()
+          ..color = i.isOdd ? const Color(0xFFE63946) : const Color(0xFFFFC857),
       );
     }
 
@@ -1057,25 +1067,28 @@ class _AltarQuetzalcoatlPainter extends CustomPainter {
       width: 38,
       height: 14,
     );
-    canvas.drawOval(collarRect, Paint()..color = const Color(0xFF0F6B5B));
+    canvas.drawOval(collarRect, Paint()..color = const Color(0xFF0B5D4F));
     for (var i = -2; i <= 2; i++) {
       canvas.drawCircle(
         Offset(center.dx + i * 7.5, center.dy + 22),
-        2.6,
-        Paint()..color = AppColors.oro,
+        2.7,
+        Paint()..color = const Color(0xFFFFC857),
       );
     }
 
-    // 6. Orejeras de oro y jade (como la máscara de la referencia)
+    // 6. Orejeras de oro y jade
     for (final dir in [-1.0, 1.0]) {
       final earCenter = Offset(center.dx + dir * 23, center.dy + 5);
-      canvas.drawCircle(earCenter, 6.2, Paint()..color = AppColors.oro);
+      canvas.drawCircle(
+        earCenter,
+        6.4,
+        Paint()..color = const Color(0xFFFFC857),
+      );
       canvas.drawCircle(
         earCenter,
         3.2,
-        Paint()..color = const Color(0xFF00C2B8),
+        Paint()..color = const Color(0xFF00D2B8),
       );
-      // Colgante de pluma bajo la orejera
       canvas.drawRRect(
         RRect.fromRectAndRadius(
           Rect.fromCenter(
@@ -1085,11 +1098,11 @@ class _AltarQuetzalcoatlPainter extends CustomPainter {
           ),
           const Radius.circular(2),
         ),
-        Paint()..color = const Color(0xFF00A896),
+        Paint()..color = const Color(0xFF00B89F),
       );
     }
 
-    // 7. Cabeza de Quetzalcóatl (estilo glifo teotihuacano amigable)
+    // 7. Cabeza de Quetzalcóatl
     final headRect = Rect.fromCenter(
       center: Offset(center.dx, center.dy + 1),
       width: 40,
@@ -1097,9 +1110,8 @@ class _AltarQuetzalcoatlPainter extends CustomPainter {
     );
     canvas.drawRRect(
       RRect.fromRectAndRadius(headRect, const Radius.circular(14)),
-      Paint()..color = const Color(0xFF178577),
+      Paint()..color = const Color(0xFF0E7C6B),
     );
-    // Frente / máscara de jade claro
     canvas.drawRRect(
       RRect.fromRectAndRadius(
         Rect.fromCenter(
@@ -1109,10 +1121,9 @@ class _AltarQuetzalcoatlPainter extends CustomPainter {
         ),
         const Radius.circular(9),
       ),
-      Paint()..color = const Color(0xFF28B5A2),
+      Paint()..color = const Color(0xFF1EC7B0),
     );
 
-    // Diadema dorada en la frente
     canvas.drawRRect(
       RRect.fromRectAndRadius(
         Rect.fromCenter(
@@ -1122,26 +1133,22 @@ class _AltarQuetzalcoatlPainter extends CustomPainter {
         ),
         const Radius.circular(2.5),
       ),
-      Paint()..color = AppColors.oro,
+      Paint()..color = const Color(0xFFFFC857),
     );
     canvas.drawCircle(
       Offset(center.dx, center.dy - 11),
-      3.0,
-      Paint()..color = AppColors.rojoGrana,
+      3.1,
+      Paint()..color = const Color(0xFFE63946),
     );
 
-    // Ojos expresivos con cejas doradas
     for (final dir in [-1.0, 1.0]) {
       final eyeCenter = Offset(center.dx + dir * 8.5, center.dy - 1);
-      // Aro dorado
       canvas.drawCircle(
         eyeCenter,
-        4.8,
-        Paint()..color = const Color(0xFFFFF3C4),
+        4.9,
+        Paint()..color = const Color(0xFFFFF8DB),
       );
-      // Pupila obsidiana
       canvas.drawCircle(eyeCenter, 2.5, Paint()..color = AppColors.obsidiana);
-      // Brillo vivo en el ojo
       canvas.drawCircle(
         eyeCenter.translate(0.9, -0.9),
         1.0,
@@ -1149,7 +1156,6 @@ class _AltarQuetzalcoatlPainter extends CustomPainter {
       );
     }
 
-    // Hocico / sonrisa cálida prehispánica
     final snoutRect = Rect.fromCenter(
       center: Offset(center.dx, center.dy + 9),
       width: 22,
@@ -1157,9 +1163,8 @@ class _AltarQuetzalcoatlPainter extends CustomPainter {
     );
     canvas.drawRRect(
       RRect.fromRectAndRadius(snoutRect, const Radius.circular(4.5)),
-      Paint()..color = const Color(0xFF0E5E52),
+      Paint()..color = const Color(0xFF0A5247),
     );
-    // Colmillitos suaves blancos (toque de serpiente emplumada)
     canvas.drawCircle(
       Offset(center.dx - 5, center.dy + 9),
       1.6,
@@ -1174,15 +1179,17 @@ class _AltarQuetzalcoatlPainter extends CustomPainter {
     // 8. Chispas doradas flotando alrededor de Quetzalcóatl
     final sparkPaint =
         Paint()
-          ..color = AppColors.fuegoDorado.withValues(alpha: 0.75 * pulse + 0.2);
+          ..color = const Color(
+            0xFFFFD166,
+          ).withValues(alpha: 0.78 * pulse + 0.2);
     canvas.drawCircle(
       Offset(center.dx - 34, center.dy - 18 - pulse * 6),
-      2.2,
+      2.3,
       sparkPaint,
     );
     canvas.drawCircle(
       Offset(center.dx + 35, center.dy - 12 - (1 - pulse) * 6),
-      2.0,
+      2.1,
       sparkPaint,
     );
   }
@@ -1270,24 +1277,21 @@ class _FuegoSagradoPainter extends CustomPainter {
     final baseY = size.height - 4;
     final bowlTop = baseY - 26;
 
-    // Sombra base
     canvas.drawOval(
       Rect.fromCenter(center: Offset(cx, baseY), width: 46, height: 8),
-      Paint()..color = Colors.black.withValues(alpha: 0.25),
+      Paint()..color = Colors.black.withValues(alpha: 0.28),
     );
 
-    // Resplandor cálido
     canvas.drawCircle(
       Offset(cx, bowlTop - 18),
       24 + progress * 4,
       Paint()
         ..color = const Color(
           0xFFFF8C00,
-        ).withValues(alpha: 0.26 + 0.1 * progress)
+        ).withValues(alpha: 0.30 + 0.1 * progress)
         ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 12),
     );
 
-    // Llama exterior
     final sway = math.sin(progress * math.pi * 2) * 2.5;
     final outerH = 38.0 + progress * 5.0;
     final outerFlame =
@@ -1310,9 +1314,8 @@ class _FuegoSagradoPainter extends CustomPainter {
             bowlTop - outerH,
           )
           ..close();
-    canvas.drawPath(outerFlame, Paint()..color = const Color(0xFFE76F51));
+    canvas.drawPath(outerFlame, Paint()..color = const Color(0xFFFF5A36));
 
-    // Llama intermedia dorada
     final innerH = 26.0 + (1 - progress) * 4.0;
     final innerFlame =
         Path()
@@ -1336,27 +1339,24 @@ class _FuegoSagradoPainter extends CustomPainter {
           ..close();
     canvas.drawPath(innerFlame, Paint()..color = const Color(0xFFFFD166));
 
-    // Núcleo luminoso
     canvas.drawOval(
       Rect.fromCenter(center: Offset(cx, bowlTop - 7), width: 8, height: 12),
       Paint()..color = const Color(0xFFFFF8E1),
     );
 
-    // Chispas ascendentes
     final sparkPaint =
-        Paint()..color = const Color(0xFFFFE082).withValues(alpha: 0.85);
+        Paint()..color = const Color(0xFFFFE082).withValues(alpha: 0.9);
     canvas.drawCircle(
       Offset(cx - 10, bowlTop - 30 - progress * 8),
-      1.7,
+      1.8,
       sparkPaint,
     );
     canvas.drawCircle(
       Offset(cx + 11, bowlTop - 34 - (1 - progress) * 7),
-      1.5,
+      1.6,
       sparkPaint,
     );
 
-    // Brasero teotihuacano con banda de oro
     final brazierPath =
         Path()
           ..moveTo(cx - 18, baseY)
@@ -1366,7 +1366,7 @@ class _FuegoSagradoPainter extends CustomPainter {
           ..lineTo(cx + 12, baseY - 12)
           ..lineTo(cx + 18, baseY)
           ..close();
-    canvas.drawPath(brazierPath, Paint()..color = const Color(0xFF4F4640));
+    canvas.drawPath(brazierPath, Paint()..color = const Color(0xFF423A35));
 
     canvas.drawRRect(
       RRect.fromRectAndRadius(
@@ -1379,7 +1379,7 @@ class _FuegoSagradoPainter extends CustomPainter {
       Offset(cx - 12, bowlTop + 9),
       Offset(cx + 12, bowlTop + 9),
       Paint()
-        ..color = AppColors.oro.withValues(alpha: 0.85)
+        ..color = const Color(0xFFFFC857)
         ..strokeWidth = 2.0
         ..strokeCap = StrokeCap.round,
     );
@@ -1416,10 +1416,10 @@ class _ChinampaPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final isNight = timePhase == ValleyTimePhase.night;
-    final soilTop = isNight ? const Color(0xFF473A2C) : const Color(0xFF8C6239);
+    final soilTop = isNight ? const Color(0xFF473A2C) : const Color(0xFF8C5A32);
     final woodSide =
-        isNight ? const Color(0xFF33261B) : const Color(0xFF634328);
-    final grass = isNight ? const Color(0xFF2B6148) : const Color(0xFF52B788);
+        isNight ? const Color(0xFF33261B) : const Color(0xFF5C3A1E);
+    final grass = isNight ? const Color(0xFF2B6148) : const Color(0xFF38B000);
     const flower = Color(0xFFFFB703);
 
     canvas.drawRRect(
@@ -1427,7 +1427,7 @@ class _ChinampaPainter extends CustomPainter {
         Rect.fromLTWH(8, size.height - 16, size.width - 16, 12),
         const Radius.circular(6),
       ),
-      Paint()..color = Colors.black.withValues(alpha: 0.22),
+      Paint()..color = Colors.black.withValues(alpha: 0.25),
     );
 
     final wallRect = Rect.fromLTWH(10, size.height - 28, size.width - 20, 16);
@@ -1442,7 +1442,7 @@ class _ChinampaPainter extends CustomPainter {
 
     final stakePaint =
         Paint()
-          ..color = Colors.black.withValues(alpha: 0.25)
+          ..color = Colors.black.withValues(alpha: 0.28)
           ..strokeWidth = 1.4;
     for (var x = wallRect.left + 10; x < wallRect.right; x += 11) {
       canvas.drawLine(
@@ -1466,7 +1466,7 @@ class _ChinampaPainter extends CustomPainter {
         Paint()..color = grass,
       );
       if (i == 1 || i == 2) {
-        canvas.drawCircle(Offset(px, py - 2), 3.4, Paint()..color = flower);
+        canvas.drawCircle(Offset(px, py - 2), 3.6, Paint()..color = flower);
       }
     }
 
@@ -1480,7 +1480,7 @@ class _ChinampaPainter extends CustomPainter {
         Rect.fromLTWH(base.dx - 2.2, base.dy - 14, 4.4, 15),
         const Radius.circular(2),
       ),
-      Paint()..color = const Color(0xFF5C4033),
+      Paint()..color = const Color(0xFF4E342E),
     );
     canvas.drawOval(
       Rect.fromCenter(
@@ -1489,7 +1489,7 @@ class _ChinampaPainter extends CustomPainter {
         height: 22,
       ),
       Paint()
-        ..color = isNight ? const Color(0xFF23523C) : const Color(0xFF40916C),
+        ..color = isNight ? const Color(0xFF23523C) : const Color(0xFF2D936C),
     );
   }
 

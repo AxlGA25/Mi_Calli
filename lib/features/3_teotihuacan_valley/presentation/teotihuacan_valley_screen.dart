@@ -25,6 +25,7 @@ import 'package:mi_calli/features/3_teotihuacan_valley/presentation/widgets/vall
 import 'package:mi_calli/features/3_teotihuacan_valley/presentation/widgets/valley_sky_gradient_layer.dart';
 import 'package:mi_calli/features/3_teotihuacan_valley/presentation/widgets/valley_top_hud_layer.dart';
 import 'package:mi_calli/features/3_teotihuacan_valley/presentation/widgets/valley_weather_particles_layer.dart';
+import 'package:mi_calli/core/widgets/mi_calli_animations.dart';
 
 /// Clave global para la pantalla completa (tests de integración).
 final GlobalKey teotihuacanValleyScreenKey = GlobalKey(
@@ -165,7 +166,7 @@ class _ValleyStack extends ConsumerWidget {
     // Callbacks para las 5 zonas táctiles
     void openSanctuaryJournal() {
       Navigator.of(context).push(
-        MaterialPageRoute<void>(builder: (_) => const SanctuaryJournalScreen()),
+        MiCalliPageRoute<void>(builder: (_) => const SanctuaryJournalScreen()),
       );
     }
 
@@ -179,7 +180,7 @@ class _ValleyStack extends ConsumerWidget {
 
     void openCodex() {
       Navigator.of(context).push(
-        MaterialPageRoute<void>(builder: (_) => const PrivateCodexScreen()),
+        MiCalliPageRoute<void>(builder: (_) => const PrivateCodexScreen()),
       );
     }
 

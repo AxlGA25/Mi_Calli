@@ -1,9 +1,4 @@
-// HUD Superior Minimalista del Valle (Layer 4 — Tarea 4.3).
-//
-// Tres botones semitransparentes flotantes:
-// - Esquina superior izquierda: Audio Ambiental
-// - Esquina superior derecha (izquierda): Ajustes / Accesibilidad
-// - Esquina superior derecha (derecha): Caracol SOS (rojo grana)
+// HUD Superior del Valle (Layer 4) con microinteracciones y AnimatedSwitcher.
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -11,10 +6,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:mi_calli/core/audio/ambient_audio_service.dart';
 import 'package:mi_calli/core/constants/app_colors.dart';
-import 'package:mi_calli/features/3_teotihuacan_valley/presentation/widgets/altar_of_calm_modal.dart';
+import 'package:mi_calli/core/widgets/mi_calli_animations.dart';
 import 'package:mi_calli/features/3_teotihuacan_valley/presentation/settings_screen.dart';
+import 'package:mi_calli/features/3_teotihuacan_valley/presentation/widgets/altar_of_calm_modal.dart';
 
-/// Capa del HUD superior con 3 botones flotantes.
+/// Capa del HUD superior con 3 botones flotantes con microinteracciones.
 class ValleyTopHudLayer extends ConsumerWidget {
   const ValleyTopHudLayer({
     super.key,
@@ -23,14 +19,8 @@ class ValleyTopHudLayer extends ConsumerWidget {
     this.onOpenCodex,
   });
 
-  /// Callback para abrir ajustes (inyectado desde TeotihuacanValleyScreen).
-  /// Si es null, navega directamente a SettingsScreen.
   final VoidCallback? onOpenSettings;
-
-  /// Callback para abrir el Santuario del Diario (Quetzalcóatl).
   final VoidCallback? onOpenSanctuaryJournal;
-
-  /// Callback para abrir el Códice/Historial (Templo de los Códices).
   final VoidCallback? onOpenCodex;
 
   @override
@@ -38,35 +28,52 @@ class ValleyTopHudLayer extends ConsumerWidget {
     final isMuted = ref.watch(ambientAudioIsMutedProvider);
 
     return IgnorePointer(
-      // El IgnorePointer permite que los botones reciban taps pero no bloquee el resto
       ignoring: false,
       child: Stack(
         children: [
-          // Botón 1: Audio Ambiental (Esquina Superior Izquierda)
+          // Botón 1: Audio Ambiental con AnimatedSwitcher
           Positioned(
             top: 16,
             left: 16,
             child: _HudButton(
               key: const ValueKey('valley_hud_audio_button'),
-              semanticsLabel: isMuted ? 'Activar sonido ambiental' : 'Silenciar sonido ambiental',
+              semanticsLabel:
+                  isMuted
+                      ? 'Activar sonido ambiental'
+                      : 'Silenciar sonido ambiental',
               onTap: () {
                 HapticFeedback.selectionClick();
                 ref.read(ambientAudioProvider.notifier).toggleMute();
               },
-              backgroundColor: AppColors.obsidiana.withValues(alpha: 0.7),
-              borderColor: AppColors.jade.withValues(alpha: 0.5),
-              child: Icon(
-                isMuted ? Icons.volume_off_rounded : Icons.volume_up_rounded,
-                color: AppColors.pergaminoClaro,
-                size: 24,
+              backgroundColor: const Color(0xFF0E1720).withValues(alpha: 0.86),
+              borderColor:
+                  isMuted
+                      ? AppColors.pergaminoClaro.withValues(alpha: 0.35)
+                      : const Color(0xFF00D2B8).withValues(alpha: 0.85),
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 220),
+                transitionBuilder:
+                    (child, anim) => ScaleTransition(
+                      scale: anim,
+                      child: FadeTransition(opacity: anim, child: child),
+                    ),
+                child: Icon(
+                  isMuted ? Icons.volume_off_rounded : Icons.volume_up_rounded,
+                  key: ValueKey<bool>(isMuted),
+                  color:
+                      isMuted
+                          ? AppColors.pergaminoClaro.withValues(alpha: 0.7)
+                          : const Color(0xFF7BF1E0),
+                  size: 24,
+                ),
               ),
             ),
           ),
 
-          // Botón 2: Ajustes / Accesibilidad (Esquina Superior Derecha - Izquierda)
+          // Botón 2: Ajustes con transición suave MiCalliPageRoute
           Positioned(
             top: 16,
-            right: 80, // 48 + 16 + 16 = 80 desde la derecha (espacio para botón SOS)
+            right: 80,
             child: _HudButton(
               key: const ValueKey('valley_hud_settings_button'),
               semanticsLabel: 'Abrir ajustes y accesibilidad',
@@ -76,12 +83,14 @@ class ValleyTopHudLayer extends ConsumerWidget {
                   onOpenSettings!();
                 } else {
                   Navigator.of(context).push(
-                    MaterialPageRoute<void>(builder: (_) => const SettingsScreen()),
+                    MiCalliPageRoute<void>(
+                      builder: (_) => const SettingsScreen(),
+                    ),
                   );
                 }
               },
-              backgroundColor: AppColors.obsidiana.withValues(alpha: 0.7),
-              borderColor: AppColors.jade.withValues(alpha: 0.5),
+              backgroundColor: const Color(0xFF0E1720).withValues(alpha: 0.86),
+              borderColor: AppColors.oro.withValues(alpha: 0.75),
               child: const Icon(
                 Icons.settings_rounded,
                 color: AppColors.pergaminoClaro,
@@ -90,7 +99,7 @@ class ValleyTopHudLayer extends ConsumerWidget {
             ),
           ),
 
-          // Botón 3: Caracol SOS (Esquina Superior Derecha - Derecha, color terracota)
+          // Botón 3: Altar de Calma / SOS (rojo grana vibrante con halo sutil)
           Positioned(
             top: 16,
             right: 16,
@@ -101,8 +110,9 @@ class ValleyTopHudLayer extends ConsumerWidget {
                 HapticFeedback.mediumImpact();
                 AltarOfCalmModal.show(context);
               },
-              backgroundColor: AppColors.rojoGrana.withValues(alpha: 0.85),
-              borderColor: AppColors.oro.withValues(alpha: 0.5),
+              backgroundColor: const Color(0xFFD63E38),
+              borderColor: const Color(0xFFFFD166),
+              glowColor: const Color(0xFFE63946).withValues(alpha: 0.45),
               child: const Icon(
                 Icons.favorite_rounded,
                 color: Colors.white,
@@ -116,7 +126,6 @@ class ValleyTopHudLayer extends ConsumerWidget {
   }
 }
 
-/// Botón del HUD con área táctil mínima 48x48, Semantics y estilo consistente.
 class _HudButton extends StatelessWidget {
   const _HudButton({
     super.key,
@@ -125,6 +134,7 @@ class _HudButton extends StatelessWidget {
     required this.backgroundColor,
     required this.borderColor,
     required this.child,
+    this.glowColor,
   });
 
   final String semanticsLabel;
@@ -132,37 +142,44 @@ class _HudButton extends StatelessWidget {
   final Color backgroundColor;
   final Color borderColor;
   final Widget child;
+  final Color? glowColor;
 
   @override
   Widget build(BuildContext context) {
-    return Semantics(
-      button: true,
-      label: semanticsLabel,
-      child: ExcludeSemantics(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
-          child: Material(
-            color: Colors.transparent,
-            child: InkWell(
-              onTap: onTap,
-              borderRadius: BorderRadius.circular(14),
-              splashColor: borderColor.withValues(alpha: 0.2),
-              highlightColor: borderColor.withValues(alpha: 0.1),
-              child: Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: backgroundColor,
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: borderColor, width: 1.5),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.obsidiana.withValues(alpha: 0.3),
-                      blurRadius: 12,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
+    return BouncyTap(
+      scaleDown: 0.90,
+      child: Semantics(
+        button: true,
+        label: semanticsLabel,
+        child: ExcludeSemantics(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: onTap,
+                borderRadius: BorderRadius.circular(16),
+                splashColor: borderColor.withValues(alpha: 0.28),
+                highlightColor: borderColor.withValues(alpha: 0.14),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 220),
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: backgroundColor,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: borderColor, width: 1.6),
+                    boxShadow: [
+                      BoxShadow(
+                        color:
+                            glowColor ??
+                            AppColors.obsidiana.withValues(alpha: 0.38),
+                        blurRadius: 14,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: child,
                 ),
-                child: child,
               ),
             ),
           ),
